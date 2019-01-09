@@ -1,0 +1,47 @@
+{
+  "name": "douyu-asst",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cd shells/chrome && webpack --mode development --watch --hide-modules",
+    "build": "cd shells/chrome && cross-env NODE_ENV=production webpack --mode production --progress --hide-modules"
+  },
+  "author": "viv",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^9.4.4",
+    "babel-eslint": "^10.0.1",
+    "buble": "^0.19.6",
+    "buble-loader": "^0.5.1",
+    "cross-env": "^5.2.0",
+    "css-loader": "^2.1.0",
+    "eslint": "^5.12.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "eslint-plugin-vue": "^5.1.0",
+    "file-loader": "^3.0.1",
+    "friendly-errors-webpack-plugin": "^1.7.0",
+    "inquirer": "^6.2.1",
+    "less": "^3.9.0",
+    "less-loader": "^4.1.0",
+    "postcss-loader": "^3.0.0",
+    "preload-webpack-plugin": "^2.3.0",
+    "semver": "^5.6.0",
+    "terser-webpack-plugin": "^1.2.1",
+    "url-loader": "^1.1.2",
+    "vue-loader": "^15.5.0",
+    "vue-template-compiler": "^2.5.21",
+    "webpack": "^4.28.3",
+    "webpack-cli": "^3.2.1",
+    "webpack-dev-server": "^3.1.14",
+    "webpack-merge": "^4.2.1"
+  },
+  "dependencies": {
+    "case-sensitive-paths-webpack-plugin": "^2.1.2",
+    "element-ui": "^2.4.11"
+  }
+}
