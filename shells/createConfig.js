@@ -4,6 +4,7 @@ const merge = require('webpack-merge');
 const { VueLoaderPlugin } = require('vue-loader');
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
 const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 // const PreloadWebpackPlugin = require('preload-webpack-plugin');
 
 module.exports = (config, target = { chrome: 52, firefox: 48 }) => {
@@ -21,6 +22,7 @@ module.exports = (config, target = { chrome: 52, firefox: 48 }) => {
     resolve: {
       alias: {
         src: path.resolve(__dirname, '../src'),
+        shellChrome: path.resolve(__dirname, './chrome'),
       },
     },
     module: {
@@ -105,7 +107,7 @@ module.exports = (config, target = { chrome: 52, firefox: 48 }) => {
             {
               loader: 'url-loader',
               options: {
-                limit: 4096,
+                limit: 0,
                 fallback: {
                   loader: 'file-loader',
                   options: {
@@ -487,6 +489,7 @@ module.exports = (config, target = { chrome: 52, firefox: 48 }) => {
         include: 'asyncChunks'
       }),
       */
+      // new BundleAnalyzerPlugin(),
     ],
     devServer: {
       port: process.env.PORT,

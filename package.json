@@ -14,6 +14,7 @@
     "babel-eslint": "^10.0.1",
     "buble": "^0.19.6",
     "buble-loader": "^0.5.1",
+    "case-sensitive-paths-webpack-plugin": "^2.1.2",
     "cross-env": "^5.2.0",
     "css-loader": "^2.1.0",
     "eslint": "^5.12.0",
@@ -34,14 +35,21 @@
     "terser-webpack-plugin": "^1.2.1",
     "url-loader": "^1.1.2",
     "vue-loader": "^15.5.0",
-    "vue-template-compiler": "^2.5.21",
+    "vue-template-compiler": "^2.5.22",
     "webpack": "^4.28.3",
+    "webpack-bundle-analyzer": "^3.0.3",
     "webpack-cli": "^3.2.1",
     "webpack-dev-server": "^3.1.14",
     "webpack-merge": "^4.2.1"
   },
   "dependencies": {
-    "case-sensitive-paths-webpack-plugin": "^2.1.2",
-    "element-ui": "^2.4.11"
+    "axios": "^0.18.0",
+    "cache-loader": "^2.0.1",
+    "element-ui": "^2.4.11",
+    "fastpriorityqueue": "^0.6.1",
+    "vue": "^2.5.22",
+    "vue-router": "^3.0.2",
+    "vuex": "^3.0.1",
+    "vuex-persist": "^2.0.0"
   }
 }
