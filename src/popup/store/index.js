@@ -19,9 +19,11 @@ const vuexLocal = new VuexPersistence({
                        mutation.type === 'SET_AUTO_OPEN_BOX' ||
                        mutation.type === 'SET_BLOCK_ENTER_EFFECT' ||
                        mutation.type === 'SET_AUTO_ANSWER_ENABLED' ||
-                       mutation.type === 'SET_AUTO_ANSWER_MODE' ||
+                       mutation.type === 'SET_AUTO_REFRESH_FREQ' ||
                        mutation.type === 'SET_BLOCK_ENTER_BARRAGE' ||
                        mutation.type === 'SET_ROCKET_ONLY' ||
+                       mutation.type === 'SET_NET_TIME_SYNC' ||
+                       mutation.type === 'SET_GHOUL_MODE' ||
                        mutation.type === 'SET_AUTO_SEND_BARRAGE_ENABLED' ||
                        mutation.type === 'SET_ZAN' || mutation.type === 'SET_WEN' ||
                        mutation.type === 'SET_SONG' || mutation.type === 'SET_SILVER' ||
@@ -33,16 +35,19 @@ const settingStore = {
     ghoulEnabled: true,
     vol: 60,
     blockLiveStream: false,
-    delayRange: [50, 800],
+    delayRange: [1000, 2000],
     autoClose: false,
     minimalism: false,
     autoOpenBox: true,
     blockEnterEffect: false,
     autoAnswerEnabled: false,
-    autoAnswerMode: 'smart',
+    autoRefreshFreq: '0',
     blockEnterBarrage: false,
     rocketOnly: false,
+    netTimeSync: true,
+    ghoulMode: 'normal',
     autoSendBarrageEnabled: true,
+    gfksax: 6,
   },
 
   mutations: {
@@ -73,17 +78,20 @@ const settingStore = {
     SET_AUTO_ANSWER_ENABLED (state, value) {
       state.autoAnswerEnabled = value;
     },
-    SET_AUTO_ANSWER_MODE (state, value) {
-      state.autoAnswerMode = value;
+    SET_AUTO_REFRESH_FREQ (state, value) {
+      state.autoRefreshFreq = value;
     },
     SET_BLOCK_ENTER_BARRAGE (state, value) {
       state.blockEnterBarrage = value;
     },
-    SET_PREVIEW_CLASS_NAME (state, value) {
-      state.previewClassName = value;
-    },
     SET_ROCKET_ONLY (state, value) {
       state.rocketOnly = value;
+    },
+    SET_NET_TIME_SYNC (state, value) {
+      state.netTimeSync = value;
+    },
+    SET_GHOUL_MODE (state, value) {
+      state.ghoulMode = value;
     },
     SET_AUTO_SEND_BARRAGE_ENABLED (state, value) {
       state.autoSendBarrageEnabled = value;

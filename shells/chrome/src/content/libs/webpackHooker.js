@@ -9,15 +9,48 @@ class WebpackHooker extends EventEmitter {
     this.setting = setting;
     this.state = 'IDLE';
     this.pendingBox = new FastPriorityQueue((a, b) => a.surplusTime < b.surplusTime);
+    this.pendingRoom = new FastPriorityQueue((a, b) => a.surplusTime < b.surplusTime);
     this.noTs = true;
     this.muteService = null;
     this.autoBarrageSent = false;
+    this.sentRooms = new Map();
+    this.openedRooms = new Set();
+    this.openedRoomCnt = 0;
+    this.currBoxId = 0;
+  }
+
+  handlePendingRoom (box) {
+    if (box) {
+      const surplusTime = Math.max(box.surplusTime * 1000 - Date.now() - (this.setting.timeDelta || 0), 0);
+      if (surplusTime < 15 * 1000 || this.sentRooms.has(box.roomId)) {
+        return;
+      }
+      this.sentRooms.set(box.roomId, box);
+      this.pendingRoom.add(box);
+    }
+
+    if (!this.pendingRoom.isEmpty() && this.openedRoomCnt < 3) {
+      ++this.openedRoomCnt;
+      const box = this.pendingRoom.poll();
+      this.openedRooms.add(box.roomId);
+      console.log('ts_new_bg_tab', box.roomId);
+      this.emit('ts_new_bg_tab', box.roomId);
+    }
+  }
+
+  onBgTabClosed (roomId) {
+    --this.openedRoomCnt;
+    this.handlePendingRoom();
   }
 
   handlePendingBoxes (boxes) {
     if (boxes && boxes instanceof Array) {
-      boxes.forEach(box => this.pendingBox.add(box));
+      boxes.forEach(box => {
+        this.setting.ghoulMode === 'pro' && this.handlePendingRoom(box);
+        this.pendingBox.add(box);
+      });
     } else if (boxes) {
+      this.setting.ghoulMode === 'pro' && this.handlePendingRoom(boxes);
       this.pendingBox.add(boxes);
     }
 
@@ -28,9 +61,14 @@ class WebpackHooker extends EventEmitter {
       const { delayRange } = this.setting;
       const delay = Math.max(delayRange[1] - delayRange[0], 0) * Math.random() + delayRange[0];
       const box = this.pendingBox.poll();
-      const limit = this.setting.rocketOnly ? 102 : 0;
-      const surplusTime = box.treasureType >= limit ? Math.max(box.surplusTime * 1000 - Date.now() - (this.setting.timeDelta || 0) + delay + 5, 0) : 1;
-      setTimeout(() => this.handleTimeupBox(box), surplusTime);
+      if (this.setting.ghoulMode === 'normal' || this.openedRooms.has(box.roomId)) {
+        const limit = this.setting.rocketOnly ? 102 : 0;
+        const surplusTime = box.treasureType >= limit ? Math.max(box.surplusTime * 1000 - Date.now() - (this.setting.timeDelta || 0) + delay + 5, 0) : 1;
+        setTimeout(() => this.handleTimeupBox(box), surplusTime);
+      } else {
+        this.state = 'IDLE';
+        setTimeout(() => this.handlePendingBoxes(), 1);
+      }
     }
 
     if (this.pendingBox.isEmpty() && this.state === 'IDLE') {
@@ -44,16 +82,24 @@ class WebpackHooker extends EventEmitter {
       if (this.setting.ghoulMode === 'pro' && box.surplusTime + 5 < time) {
         console.log('miss');
         this.state = 'IDLE';
-        this.handlePendingBoxes();
-        return;
+        return this.handlePendingBoxes();
       }
       const limit = this.setting.rocketOnly ? 102 : 0;
       if (box.treasureType >= limit) {
         console.log('picking', box);
+        this.currBoxId = box.treasureId;
         window.PlayerAsideApp.container.registry.store.dispatch({
           type: 'DRAW_TREASURE',
           payload: { data: box, type: 'init' },
         });
+        setTimeout(() => {
+          if (this.currBoxId === box.treasureId && this.state === 'WAITING') {
+            console.log('timeout');
+            this.currBoxId = 0;
+            this.state = 'IDLE';
+            this.handlePendingBoxes();
+          }
+        }, 3000);
       } else {
         console.log('pass');
         this.state = 'IDLE';

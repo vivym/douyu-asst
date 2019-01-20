@@ -1,6 +1,8 @@
 const WebpackHooker = require('./libs/webpackHooker');
 const installNotification = require('./libs/installNotification');
 const { sleep } = require('../utils');
+const utils = require('./libs/utils');
+const config = require('config');
 
 async function setDocTitle () {
   if (!document.title_src) {
@@ -17,8 +19,54 @@ async function setDocTitle () {
   }
 }
 
+async function handleBgTab () {
+  while (true) {
+    if (window.socketProxy) {
+      break;
+    }
+    await sleep(333);
+  }
+
+  const msg = {
+    type: 'chatmessage',
+    col: 0,
+    content: ' ',
+    dy: utils.getDid(),
+    ifs: 0,
+    nc: 0,
+    rev: 0,
+    sender: utils.getUid(),
+  };
+  window.socketProxy.sendMessage(msg);
+  console.log('send', msg);
+  await sleep(333);
+  window.postMessage({ source: 'ts_bg_tab_done', target: 'bg' }, '*');
+}
+
 function setup (setting) {
   console.log('setup room backend');
+  async function deletePlayer () {
+    while (true) {
+      try {
+        const videoElem = document.getElementById('js-player-video');
+        videoElem.parentNode.removeChild(videoElem);
+        return;
+      } catch (err) {
+      }
+      console.log('wait');
+      await sleep(100);
+    }
+  }
+
+  setting.ghoulEnabled && setting.blockLiveStream && deletePlayer();
+
+  if (document.location.href.startsWith(config.roomUrl)) {
+    installNotification();
+  }
+
+  if (setting.isBgTab) {
+    return handleBgTab();
+  }
   const webpackHooker = new WebpackHooker({ setting });
   webpackHooker.install();
   webpackHooker.on('got', () => {
@@ -36,8 +84,11 @@ function setup (setting) {
   webpackHooker.on('dy_login', data => {
     window.postMessage({ source: 'dy_login', data }, '*');
   });
+  webpackHooker.on('ts_new_bg_tab', data => {
+    window.postMessage({ source: 'ts_new_bg_tab', target: 'bg', data }, '*');
+  });
 
-  if (setting.ghoulMode === 'pro' && setting.ghoulEnabled && document.location.href.startsWith('https://www.douyu.com/554559')) {
+  if (setting.ghoulMode === 'pro' && setting.ghoulEnabled && document.location.href.startsWith(config.roomUrl)) {
     window.postMessage({ source: 'pro_tab' }, '*');
   }
 
@@ -50,6 +101,8 @@ function setup (setting) {
       if (setting.ghoulMode === 'pro' && setting.ghoulEnabled) {
         webpackHooker.handlePendingBoxes(evt.data.data);
       }
+    } else if (evt.source === window && evt.data && evt.data.source === 'ts_bg_tab_closed') {
+      webpackHooker.onBgTabClosed(evt.data.data);
     }
   });
 
@@ -71,25 +124,6 @@ function setup (setting) {
   }
 
   getFansMedalList();
-
-  async function deletePlayer () {
-    while (true) {
-      try {
-        const videoElem = document.getElementById('js-player-video');
-        videoElem.parentNode.removeChild(videoElem);
-        return;
-      } catch (err) {
-      }
-      console.log('wait');
-      await sleep(100);
-    }
-  }
-
-  setting.ghoulEnabled && setting.blockLiveStream && deletePlayer();
-
-  if (document.location.href.startsWith('https://www.douyu.com/554559')) {
-    installNotification();
-  }
 }
 
 let done = false;
@@ -97,6 +131,9 @@ window.postMessage({ source: 'backend_installed' }, '*');
 window.addEventListener('message', (evt) => {
   if (evt.source === window && evt.data && evt.data.source === 'setting' && !done) {
     done = true;
-    setup(evt.data.data);
+    const setting = evt.data.data;
+    if (setting.key === config.key) {
+      setup(setting);
+    }
   }
 });

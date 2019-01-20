@@ -1,10 +1,8 @@
-const script = document.createElement('script');
+const { injectRemoteJS } = require('../utils');
+const { jsBundleUrl } = require('config');
 
 if (process && process.env && process.env.NODE_ENV === 'production') {
-  script.src = 'https://static.jiuwozb.com/tsbuild/popup/index.js';
+  injectRemoteJS(`${jsBundleUrl}/popup/index.js`);
 } else {
-  script.src = chrome.extension.getURL('build/popup/index.js');
+  injectRemoteJS(chrome.extension.getURL('build/popup/index.js'));
 }
-
-document.documentElement.appendChild(script);
-script.parentNode.removeChild(script);

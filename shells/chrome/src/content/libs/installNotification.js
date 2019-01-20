@@ -1,6 +1,10 @@
 const { sleep } = require('../../utils');
+const config = require('config');
 
 async function installNotification () {
+  if (!config.notification.enabled) {
+    return;
+  }
   while (true) {
     if (document.body) {
       break;
@@ -39,7 +43,7 @@ async function installNotification () {
   label1.style = 'position: absolute; left: 14.8px; top: 204.4px; height: 16px; font-size: 11.2px; color: white; user-select: none;';
   wrapper.insertBefore(label1, wrapper.firstElementChild);
   const label2 = document.createElement('span');
-  label2.innerHTML = '峰峰<span style="color: #00FFDD">微信</span>提醒';
+  label2.innerHTML = `${config.notification.label2_0}<span style="color: #00FFDD">微信</span>提醒`;
   label2.style = 'position: absolute; left: 14.8px; top: 220px; height: 16px; font-size: 11.2px; color: #FFEE00; user-select: none;';
   wrapper.insertBefore(label2, wrapper.firstElementChild);
   document.body.insertBefore(wrapper, document.body.firstElementChild);

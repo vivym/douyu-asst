@@ -1,4 +1,4 @@
-const localStorageProxy = require('./localStorageProxy');
+const localStorageProxy = require('./libs/localStorageProxy');
 const BackgroundProxy = require('./backgroundProxy');
 const installGlobals = require('./installGlobals');
 

@@ -127,6 +127,7 @@
 
 <script>
 import { mapState } from 'vuex';
+import { proModeEnabled } from 'config';
 
 export default {
   data: () => ({
@@ -135,7 +136,7 @@ export default {
     ghoulMode: 'normal',
     blockLiveStream: false,
     minimalism: false,
-    delayRange: [200, 800],
+    delayRange: [1000, 2000],
     autoClose: false,
     autoOpenBox: true,
     rocketOnly: false,
@@ -188,11 +189,15 @@ export default {
       this.$store.commit('SET_ROCKET_ONLY', value);
     },
     ghoulMode (value, prev) {
-      if (value === 'pro') {
-        this.$message({ message: '暂不支持高级模式', type: 'warning' });
-        this.ghoulMode = 'normal';
-      } else {
+      if (proModeEnabled) {
         this.$store.commit('SET_GHOUL_MODE', value);
+      } else {
+        if (value === 'pro') {
+          this.$message({ message: '暂不支持高级模式', type: 'warning' });
+          this.ghoulMode = 'normal';
+        } else {
+          this.$store.commit('SET_GHOUL_MODE', value);
+        }
       }
     },
     autoSendBarrageEnabled (value) {

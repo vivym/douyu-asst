@@ -1,0 +1,49 @@
+{
+  "name": "99999摸金助手",
+  "short_name": "douyu-asst",
+  "version": "1.0.0",
+  "description": "99999摸金助手",
+  "manifest_version": 2,
+
+  "icons": {
+    "32": "assets/logo-32.png",
+    "48": "assets/logo-48.png",
+    "128": "assets/logo-128.png"
+  },
+
+  "browser_action": {
+    "default_icon": {
+      "128": "assets/logo-128.png"
+    },
+    "default_title": "99999摸金助手",
+    "default_popup": "popup.html"
+  },
+
+  "content_security_policy": "script-src 'self' https://*.jiuwozb.com 'unsafe-eval'; object-src 'self'",
+
+  "web_accessible_resources": [
+    "build/*",
+    "assets/*",
+    "https://static.jiuwozb.com/*"
+  ],
+
+  "background": {
+    "scripts": ["build/bg_loader.js"],
+    "persistent": true
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://*.douyu.com/*"],
+      "js": ["build/content_loader.js"],
+      "run_at": "document_start"
+    }
+  ],
+
+  "permissions": [
+    "tabs",
+    "https://*.douyu.com/*",
+    "http://api.m.taobao.com/*",
+    "https://*.jiuwozb.com/*"
+  ]
+}

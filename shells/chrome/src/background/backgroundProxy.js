@@ -1,10 +1,13 @@
 const httpClient = require('./libs/httpClient');
-const localStorageProxy = require('./localStorageProxy');
+const localStorageProxy = require('./libs/localStorageProxy');
+const GhoulProxy = require('./libs/ghoulProxy');
 const { playAudio } = require('../utils');
+const config = require('config');
 
 class BackgroundProxy {
   constructor () {
-    this.timeDelta = null;
+    this.ghoulProxy = new GhoulProxy();
+    this.bgTabs = new Map();
   }
 
   setup () {
@@ -18,14 +21,16 @@ class BackgroundProxy {
   onContentConnected (port) {
     const { setting } = localStorageProxy.entry();
     if (setting) {
+      if (this.bgTabs.has(port.sender.tab.id)) {
+        setting.isBgTab = true;
+      }
       new Promise(resolve => {
-        if (!this.timeDelta) {
+        if (setting.netTimeSync) {
           httpClient.standardTime().then(time => {
-            this.timeDelta = time - Date.now() + 20;
-            resolve(this.timeDelta);
+            resolve(time - Date.now() + 20);
           }).catch(err => resolve(err));
         } else {
-          resolve(this.timeDelta);
+          resolve(0);
         }
       }).then(timeDelta => {
         if (setting.netTimeSync && timeDelta > 0) {
@@ -33,7 +38,8 @@ class BackgroundProxy {
         } else {
           setting.timeDelta = 0;
         }
-        port.postMessage({ type: 'setting', data: setting });
+        setting.key = config.key;
+        port && !port.isDisconnected && port.postMessage({ type: 'setting', data: setting });
       });
     }
 
@@ -48,18 +54,35 @@ class BackgroundProxy {
       dy_login: msg => httpClient.dyLogin(msg.data, port),
       pro_tab: msg => this.onProTab(port),
       fans_medal_list: msg => this.onFansMedalList(msg.data, port),
+      ts_new_bg_tab: msg => this.onTsNewBgTab(msg.data, port),
+      ts_bg_tab_done: msg => this.onTsBgTabDone(msg.data, port),
     };
 
     const { type } = msg;
     funcMap[type] && funcMap[type](msg);
   }
 
+  onTsBgTabDone (data, port) {
+    const { id } = port.sender.tab;
+    const roomId = this.bgTabs.get(id);
+    this.bgTabs.delete(id);
+    chrome.tabs.remove(id);
+    const proPort = this.ghoulProxy.port;
+    proPort && !proPort.isDisconnected && proPort.postMessage({ type: 'ts_bg_tab_closed', data: roomId });
+  }
+
+  onTsNewBgTab (roomId) {
+    chrome.tabs.create({ url: `https://www.douyu.com/${roomId}`, selected: false }, tab => {
+      this.bgTabs.set(tab.id, roomId);
+    });
+  }
+
   onFansMedalList (data) {
-    // todo
+    this.ghoulProxy.setFansMedalList(data);
   }
 
   onProTab (port) {
-    // todo
+    this.ghoulProxy.setTab(port.sender.tab, port);
   }
 
   resetStat (stat, today) {
@@ -80,7 +103,7 @@ class BackgroundProxy {
     const { type, data } = msg;
     if (type === 'got') {
       const { setting } = localStorageProxy.entry();
-      playAudio(chrome.extension.getURL('assets/ding.wav'), setting.vol / 100);
+      playAudio('https://static.jiuwozb.com/assets/audio/ding.wav', setting.vol / 100);
     } else if (type === 'got_res') {
       // this.geetestAgent.upload(data);
       const { stat } = localStorageProxy.entry();
@@ -108,7 +131,7 @@ class BackgroundProxy {
       }
       /* eslint-enable */
       localStorageProxy.set('stat', stat);
-      port.postMessage({ type: 'sync' });
+      port && !port.isDisconnected && port.postMessage({ type: 'sync' });
     }
   }
 };

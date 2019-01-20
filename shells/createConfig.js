@@ -23,6 +23,7 @@ module.exports = (config, target = { chrome: 52, firefox: 48 }) => {
       alias: {
         src: path.resolve(__dirname, '../src'),
         shellChrome: path.resolve(__dirname, './chrome'),
+        config: path.resolve(__dirname, '../config'),
       },
     },
     module: {

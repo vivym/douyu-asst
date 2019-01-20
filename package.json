@@ -47,6 +47,7 @@
     "cache-loader": "^2.0.1",
     "element-ui": "^2.4.11",
     "fastpriorityqueue": "^0.6.1",
+    "socket.io": "^2.2.0",
     "vue": "^2.5.22",
     "vue-router": "^3.0.2",
     "vuex": "^3.0.1",

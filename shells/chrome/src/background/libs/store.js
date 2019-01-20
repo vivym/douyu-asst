@@ -1,11 +1,10 @@
 module.exports = {
   setting: {
     ghoulEnabled: true,
-    vol: 30,
+    vol: 60,
     blockLiveStream: false,
-    delayRange: [200, 800],
+    delayRange: [1000, 2000],
     autoClose: false,
-    autoDrive: false,
     minimalism: false,
     autoOpenBox: true,
     blockEnterEffect: false,
@@ -14,10 +13,9 @@ module.exports = {
     blockEnterBarrage: false,
     rocketOnly: false,
     netTimeSync: true,
-    showTips: true,
     ghoulMode: 'normal',
-    gfksax: 12,
     autoSendBarrageEnabled: true,
+    gfksax: 6,
   },
   stat: {
     box: 0,

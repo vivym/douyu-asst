@@ -1,22 +1,25 @@
 <template>
   <div class="header-wrapper">
-    <div @click.prevent="goto554559">
+    <div @click.prevent="gotoRoom">
       <img class="avatar"
-            src="https://apic.douyucdn.cn/upload/avatar_v3/201901/0f7525f2c8e74c3c04c147fd748f60f3_big.jpg" />
+           :src="avatarUrl" />
     </div>
-    <p class="header-title">峰峰三号摸金助手</p>
+    <p class="header-title">{{title}}</p>
     <div class="header-extra" @click.prevent="gotoMyHome">定制版</div>
   </div>
 </template>
 
 <script>
+const config = require('config');
+
 export default {
   data: () => ({
-    version: require('shellChrome/manifest').version,
+    title: config.headerTitle,
+    avatarUrl: config.avatarUrl,
   }),
   methods: {
-    goto554559 () {
-      this.createTab({ url: 'https://www.douyu.com/554559', selected: true });
+    gotoRoom () {
+      this.createTab({ url: config.roomUrl, selected: true });
     },
     gotoMyHome () {
       this.createTab({ url: 'https://yuba.douyu.com/user/main/194634764', selected: true });
