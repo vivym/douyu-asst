@@ -1,3 +1,4 @@
+/*
 const { key } = require('config');
 
 let done = false;
@@ -14,3 +15,4 @@ window.addEventListener('message', (evt) => {
 
 function setup (setting) {
 }
+*/

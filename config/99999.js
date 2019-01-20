@@ -10,7 +10,7 @@ module.exports = {
     label2_0: '专属',
   },
 
-  proModeEnabled: true,
+  proModeEnabled: false,
 
   jsBundleUrl: 'https://static.jiuwozb.com/tsbuild_99999',
 

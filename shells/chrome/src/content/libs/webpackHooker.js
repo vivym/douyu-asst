@@ -2,6 +2,7 @@ const { EventEmitter } = require('events');
 const FastPriorityQueue = require('fastpriorityqueue');
 const webpackHelper = require('./webpackHelper');
 const { sleep } = require('../../utils');
+const decode = require('./decode');
 
 class WebpackHooker extends EventEmitter {
   constructor ({ setting }) {
@@ -87,19 +88,12 @@ class WebpackHooker extends EventEmitter {
       const limit = this.setting.rocketOnly ? 102 : 0;
       if (box.treasureType >= limit) {
         console.log('picking', box);
+        this.state = 'PICKING';
         this.currBoxId = box.treasureId;
         window.PlayerAsideApp.container.registry.store.dispatch({
           type: 'DRAW_TREASURE',
           payload: { data: box, type: 'init' },
         });
-        setTimeout(() => {
-          if (this.currBoxId === box.treasureId && this.state === 'WAITING') {
-            console.log('timeout');
-            this.currBoxId = 0;
-            this.state = 'IDLE';
-            this.handlePendingBoxes();
-          }
-        }, 3000);
       } else {
         console.log('pass');
         this.state = 'IDLE';
@@ -220,88 +214,90 @@ class WebpackHooker extends EventEmitter {
     return this.did;
   }
 
-  async hookStore () {
-    const self = this;
+  async waitForObj (obj, key, interval = 100) {
     while (true) {
-      try {
-        const { store } = window.PlayerAsideApp.container.registry;
-        let curValue = null;
-        store.subscribe(() => {
-          const prevValue = curValue;
-          curValue = store.getState().treasureDrawResult;
-          if (curValue !== prevValue) {
-            if (curValue.data && curValue.data.geetest && curValue.data.geetest.validate_str) {
-              self.emit('got');
-              const { autoOpenBox } = self.setting;
-              autoOpenBox && self.showGeeTestPanel();
-              self.state = 'GEE_SHOW';
-            }
-          }
-        });
-        console.log('store hooked');
+      if (obj[key]) {
         return;
-      } catch (err) {
       }
-      await sleep(100);
+      await sleep(interval);
     }
   }
 
+  isArray (s) {
+    return /@\S\//g.test(String(s));
+  }
+
+  getRoomId () {
+    return window.socketProxy.info.room.roomId;
+  }
+
+  dataMap (boxes) {
+    return boxes.map(box => ({
+      roomId: this.getRoomId(),
+      treasureId: parseInt(box.rpid, 10),
+      treasureType: parseInt(box.rpid, 10),
+      senderName: box.snk,
+      senderUid: +box.sid,
+      surplusTime: parseInt(box.ot, 10),
+      destroyTime: parseInt(box.dt, 10),
+    }));
+  }
+
+  async installSocketHook () {
+    await this.waitForObj(window, 'socketProxy');
+    const { socketStream } = window.socketProxy;
+    socketStream.subscribe('tsbox', boxes => {
+      console.log('tsbox', boxes);
+      // this.setting.ghoulEnabled && this.handlePendingBoxes(boxes);
+    });
+
+    socketStream.subscribe('tslist', msg => {
+      const list = msg.list || [];
+      const boxes = [];
+      (this.isArray(list) ? decode(list) : [list]).forEach(data => {
+        data && boxes.push(decode(data));
+      });
+      this.handlePendingBoxes(this.dataMap(boxes));
+    });
+  }
+
+  async installHttpHook () {
+    await this.waitForObj(window, 'sdkf30fc3f26aeee28b73b0');
+    const httpClient = window.sdkf30fc3f26aeee28b73b0('0b1d3').default;
+    httpClient.applyMiddleWare('post', /\/member\/task\/redPacketReceive/i, rsp => {
+      if (this.state === 'PICKING') {
+        if (rsp.geetest) {
+          this.state = 'GEE_TESTING';
+          this.emit('got');
+          this.showGeeTestPanel();
+        } else {
+          this.state = 'IDLE';
+          console.log('miss.');
+          this.handlePendingBoxes();
+        }
+      } else if (this.state === 'GEE_TESTING') {
+        if (parseInt(rsp.code, 10) === 0) {
+          this.emit('got_res', rsp);
+        }
+        this.state = 'IDLE';
+        this.handlePendingBoxes();
+      }
+      return rsp;
+    });
+  }
+
   install () { // c8c37
-    this.hookStore();
-    const self = this;
+    this.setting.ghoulEnabled && this.installSocketHook();
+    this.installHttpHook();
     webpackHelper.hook([
       {
         name: '1c14c',
-        path: ['a', 'prototype', ['mapping', 'dataMap', 'showDrawTips', 'drawTreasure', 'drawTreasureRequest']],
+        path: ['a', 'prototype', ['drawTreasureRequest']],
         hooks: {
-          mapping (modules, fn, t, n) {
-            self.dyLogin();
-            const box = fn.call(this, t, n);
-            if (self.setting.ghoulEnabled) {
-              box.destroyTime -= box.delayTime;
-              box.surplusTime -= box.delayTime;
-              box.delayTime = 1;
-            }
-            // console.log('box:', box); // box.treasureType 100 airplane 102 rocket 103 super rocket
-            return box;
-          },
-          dataMap (modules, fn, t, n) { // RCV
-            const boxes = fn.call(this, t, n);
-            self.setting.ghoulEnabled && self.handlePendingBoxes(boxes);
-            return boxes;
-          },
-          showDrawTips (modules, fn, t) {
-            if (self.state === 'WAITING' && parseInt(t.code, 10) !== 0) { // miss
-              self.state = 'IDLE';
-              self.handlePendingBoxes();
-              self.emit('miss');
-            } else if (self.state === 'GEE_SHOW' && parseInt(t.code, 10) !== 0) { // geetest error
-              self.state = 'IDLE';
-              self.handlePendingBoxes();
-            } else if (parseInt(t.code, 10) === 0) { // got_res
-              self.state = 'IDLE';
-              self.handlePendingBoxes();
-              self.emit('got_res', t);
-            } else if (parseInt(t.code, 10) === -1) { // failed
-              self.state = 'IDLE';
-              self.handlePendingBoxes();
-            } else {
-              self.handlePendingBoxes();
-              console.log('missing case', t);
-            }
-            return fn.call(this, t);
-          },
-          drawTreasure (modules, fn, t, n) {
-            if (self.state === 'GEE_SHOW' && n === 'check') { // geetest checking request
-              self.state = 'GEE_CHECKING';
-            }
-            return fn.call(this, t, n);
-          },
           drawTreasureRequest (modules, fn, t) {
             const payload = t.payload || {};
             const { type, data } = payload;
             const douyuDid = this.global.get('douyuDid');
-            // const roomId = this.global.get('$ROOM.room_id');
             let info = {};
             if (type === 'init') {
               this.config.treasureId = data.treasureId;
@@ -328,79 +324,6 @@ class WebpackHooker extends EventEmitter {
             return httpClient.post(String, '/member/task/redPacketReceive', info, {
               headers: { 'content-type': 'application/x-www-form-urlencoded' },
             });
-          },
-        },
-      },
-      {
-        name: 'b33f',
-        path: ['a', 'prototype', ['render']],
-        hooks: {
-          render (fn) {
-            if (self.setting.blockEnterEffect) {
-              this.state.isRender = false;
-            }
-            return fn.call(this);
-          },
-        },
-      },
-      {
-        name: '9ce9',
-        path: ['a', 'prototype', ['init']],
-        hooks: {
-          init (fn, t) {
-            try {
-              const elem = document.getElementsByClassName('AnchorLevelTip-tipBarNum')[0];
-              elem.appendChild(document.createTextNode(', '));
-              elem.appendChild(document.createTextNode(t.$ROOM.levelInfo.experience));
-            } catch (e) {
-              console.log('err:', e);
-            }
-            return fn.call(this, t);
-          },
-        },
-      },
-      {
-        name: '597a',
-        path: ['a', 'WrappedComponent', 'prototype', ['render']],
-        hooks: {
-          render (fn) {
-            try {
-              if (this.props.ownerFansRank > 0) {
-                this.props.ownerFansRank = -this.props.ownerFansRank;
-              }
-            } catch (e) {
-              console.log('err:', e);
-            }
-            return fn.call(this);
-          },
-        },
-      },
-      {
-        name: 'fd73',
-        path: ['a', 'WrappedComponent', 'prototype', ['render']],
-        hooks: {
-          render (fn) {
-            try {
-              // console.log('here', this);
-            } catch (e) {
-              console.log('err:', e);
-            }
-            return fn.call(this);
-          },
-        },
-      },
-      {
-        name: '7914',
-        path: ['a', 'create'],
-        hooks: {
-          create (fn, t) {
-            const obj = fn.call(this, t);
-            const oldPush = obj.push;
-            obj.push = (t, r) => {
-              t = self.handleBarrages(t, r);
-              oldPush.call(obj, t, r);
-            };
-            return obj;
           },
         },
       },
