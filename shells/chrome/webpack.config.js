@@ -11,6 +11,7 @@ module.exports = createConfig({
     'content/room': './src/content/room.js',
     'content/yuba': './src/content/yuba.js',
     'content/extra': './src/content/extra.js',
+    'content/panel': './src/content/panel.js',
   },
   output: {
     path: path.join(__dirname, 'build'),

@@ -43,6 +43,7 @@
     "webpack-merge": "^4.2.1"
   },
   "dependencies": {
+    "animejs": "^3.0.1",
     "axios": "^0.18.0",
     "cache-loader": "^2.0.1",
     "element-ui": "^2.4.11",

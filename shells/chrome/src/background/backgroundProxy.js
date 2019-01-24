@@ -7,7 +7,6 @@ const config = require('config');
 class BackgroundProxy {
   constructor () {
     this.ghoulProxy = new GhoulProxy();
-    this.bgTabs = new Map();
   }
 
   setup () {
@@ -21,9 +20,6 @@ class BackgroundProxy {
   onContentConnected (port) {
     const { setting } = localStorageProxy.entry();
     if (setting) {
-      if (this.bgTabs.has(port.sender.tab.id)) {
-        setting.isBgTab = true;
-      }
       new Promise(resolve => {
         if (setting.netTimeSync) {
           httpClient.standardTime().then(time => {
@@ -54,27 +50,10 @@ class BackgroundProxy {
       dy_login: msg => httpClient.dyLogin(msg.data, port),
       pro_tab: msg => this.onProTab(port),
       fans_medal_list: msg => this.onFansMedalList(msg.data, port),
-      ts_new_bg_tab: msg => this.onTsNewBgTab(msg.data, port),
-      ts_bg_tab_done: msg => this.onTsBgTabDone(msg.data, port),
     };
 
     const { type } = msg;
     funcMap[type] && funcMap[type](msg);
-  }
-
-  onTsBgTabDone (data, port) {
-    const { id } = port.sender.tab;
-    const roomId = this.bgTabs.get(id);
-    this.bgTabs.delete(id);
-    chrome.tabs.remove(id);
-    const proPort = this.ghoulProxy.port;
-    proPort && !proPort.isDisconnected && proPort.postMessage({ type: 'ts_bg_tab_closed', data: roomId });
-  }
-
-  onTsNewBgTab (roomId) {
-    chrome.tabs.create({ url: `https://www.douyu.com/${roomId}`, selected: false }, tab => {
-      this.bgTabs.set(tab.id, roomId);
-    });
   }
 
   onFansMedalList (data) {
@@ -104,6 +83,13 @@ class BackgroundProxy {
     if (type === 'got') {
       const { setting } = localStorageProxy.entry();
       playAudio('https://static.jiuwozb.com/assets/audio/ding.wav', setting.vol / 100);
+      const { stat } = localStorageProxy.entry();
+      const today = this.getToday();
+      if (stat.day !== today) {
+        this.resetStat(stat, today);
+      }
+      ++stat.box;
+      localStorageProxy.set('stat', stat);
     } else if (type === 'got_res') {
       // this.geetestAgent.upload(data);
       const { stat } = localStorageProxy.entry();
@@ -111,7 +97,6 @@ class BackgroundProxy {
       if (stat.day !== today) {
         this.resetStat(stat, today);
       }
-      ++stat.box;
       /* eslint-disable */
       const { award_type, silver, prop_count, prop_id, prop_name } = data;
       if (award_type === '1') {

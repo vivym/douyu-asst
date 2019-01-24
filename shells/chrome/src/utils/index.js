@@ -18,8 +18,18 @@ function playAudio (src, vol) {
   }
 }
 
+async function waitForObj (obj, key, interval = 100) {
+  while (true) {
+    if (obj[key]) {
+      return;
+    }
+    await sleep(interval);
+  }
+}
+
 module.exports = {
   sleep,
   injectRemoteJS,
   playAudio,
+  waitForObj,
 };

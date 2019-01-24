@@ -66,22 +66,6 @@
     </el-card>
     <el-dialog title="摸金设置" :visible.sync="settingModalShow" fullscreen>
       <el-row type="flex" align="middle">
-        <el-col :span="20">
-          <div class="row-title">屏蔽播放器</div>
-        </el-col>
-        <el-col :span="4">
-          <el-switch v-model="blockLiveStream" :width="50" />
-        </el-col>
-      </el-row>
-      <el-row type="flex" align="middle" class="margin_top_10">
-        <el-col :span="20">
-          <div class="row-title">极简模式</div>
-        </el-col>
-        <el-col :span="4">
-          <el-switch v-model="minimalism" :width="50" />
-        </el-col>
-      </el-row>
-      <el-row type="flex" align="middle" class="margin_top_10">
         <el-col :span="7">
           <div class="row-title">宝箱延迟</div>
         </el-col>
@@ -113,14 +97,6 @@
           <el-switch v-model="rocketOnly" :width="50" />
         </el-col>
       </el-row>
-      <el-row type="flex" align="middle" class="margin_top_10">
-        <el-col :span="20">
-          <div class="row-title">自动发解毒弹幕</div>
-        </el-col>
-        <el-col :span="4">
-          <el-switch v-model="autoSendBarrageEnabled" :width="50" />
-        </el-col>
-      </el-row>
     </el-dialog>
   </div>
 </template>
@@ -134,8 +110,6 @@ export default {
     ghoulEnabled: true,
     vol: 30,
     ghoulMode: 'normal',
-    blockLiveStream: false,
-    minimalism: false,
     delayRange: [1000, 2000],
     autoClose: false,
     autoOpenBox: true,
@@ -170,17 +144,11 @@ export default {
     vol (value) {
       this.$store.commit('SET_VOL', value);
     },
-    blockLiveStream (value) {
-      this.$store.commit('SET_BLOCK_LIVE_STREAM', value);
-    },
     delayRange (value) {
       this.$store.commit('SET_DELAY_RANGE', value);
     },
     autoClose (value) {
       this.$store.commit('SET_AUTO_CLOSE', value);
-    },
-    minimalism (value) {
-      this.$store.commit('SET_MINIMALISM', value);
     },
     autoOpenBox (value) {
       this.$store.commit('SET_AUTO_OPEN_BOX', value);
@@ -208,10 +176,8 @@ export default {
   created () {
     this.ghoulEnabled = this.$store.state.setting.ghoulEnabled;
     this.vol = this.$store.state.setting.vol;
-    this.blockLiveStream = this.$store.state.setting.blockLiveStream;
     this.delayRange = this.$store.state.setting.delayRange;
     this.autoClose = this.$store.state.setting.autoClose;
-    this.minimalism = this.$store.state.setting.minimalism;
     this.autoOpenBox = this.$store.state.setting.autoOpenBox;
     this.rocketOnly = this.$store.state.setting.rocketOnly;
     this.ghoulMode = this.$store.state.setting.ghoulMode;

@@ -1,8 +1,8 @@
 {
-  "name": "峰峰三号摸金助手",
+  "name": "99999摸金助手",
   "short_name": "douyu-asst",
   "version": "1.0.0",
-  "description": "峰峰三号摸金助手",
+  "description": "99999摸金助手",
   "manifest_version": 2,
 
   "icons": {
@@ -15,7 +15,7 @@
     "default_icon": {
       "128": "assets/logo-128.png"
     },
-    "default_title": "峰峰三号摸金助手",
+    "default_title": "99999摸金助手",
     "default_popup": "popup.html"
   },
 
