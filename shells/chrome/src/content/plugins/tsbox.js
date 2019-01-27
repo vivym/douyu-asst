@@ -149,7 +149,7 @@ class TsboxPlugin extends Plugin {
     return boxes.map(box => ({
       roomId: window.socketProxy.info.room.roomId,
       treasureId: parseInt(box.rpid, 10),
-      treasureType: parseInt(box.rpid, 10),
+      treasureType: parseInt(box.rpt, 10),
       senderName: box.snk,
       senderUid: +box.sid,
       surplusTime: parseInt(box.ot, 10),

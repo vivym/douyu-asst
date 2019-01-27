@@ -18,17 +18,7 @@ class GhoulProxy {
     this.port = null;
     this.lastBoxes = new Set();
     this.fansMedalList = null;
-  }
-
-  initSocket () {
-    if (socketClient.socket) {
-      socketClient.destroy();
-    }
-
-    if (this.checkPermission()) {
-      socketClient.connect();
-      socketClient.register('tsbox', this.onTsbox.bind(this));
-    }
+    socketClient.register('tsbox', this.onTsbox.bind(this));
   }
 
   checkPermission () {
@@ -46,10 +36,6 @@ class GhoulProxy {
 
   setFansMedalList (data) {
     this.fansMedalList = data;
-    console.log(data);
-    if (this.tab && this.port) {
-      this.initSocket();
-    }
   }
 
   boxDiff (boxes) {
@@ -67,6 +53,7 @@ class GhoulProxy {
   }
 
   onTsbox (boxes) {
+    console.log(boxes);
     const { port } = this;
     if (validate(boxes)) {
       port && !port.isDisconnected && port.postMessage({
@@ -104,9 +91,6 @@ class GhoulProxy {
     port.onDisconnect.addListener(() => this.onPortDisconnected(port));
     this.tab = tab;
     this.port = port;
-    if (this.fansMedalList) {
-      this.initSocket();
-    }
   }
 };
 

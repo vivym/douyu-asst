@@ -1,6 +1,6 @@
 const { sleep, injectRemoteJS } = require('../../utils');
 
-async function installPanel () {
+async function installNotification () {
   while (true) {
     if (document.body) {
       break;
@@ -8,10 +8,10 @@ async function installPanel () {
     await sleep(333);
   }
   const wrapper = document.createElement('div');
-  wrapper.id = 'dyasst';
+  wrapper.id = 'dyasst-notification';
   document.body.insertBefore(wrapper, document.body.firstElementChild);
 
-  injectRemoteJS('chrome-extension://gbbpngofangjplfgakjffjfcphngbolm/tsbuild/content/panel.js');
+  injectRemoteJS('chrome-extension://gbbpngofangjplfgakjffjfcphngbolm/tsbuild/content/notification.js');
 }
 
-module.exports = installPanel;
+module.exports = installNotification;

@@ -6,7 +6,7 @@
     <div class="btn-1 dyasst-btn">
       <img class="avatar" :src="avatarUrl" />
     </div>
-    <div class="btn-2 dyasst-btn">
+    <div class="btn-2 dyasst-btn" @click="showCapturePanel">
       <img class="avatar" :src="avatarUrl" />
     </div>
     <div class="btn-3 dyasst-btn">
@@ -41,6 +41,14 @@ export default {
         },
       });
       this.btnShow = !this.btnShow;
+    },
+    showCapturePanel () {
+      if (window.dyasstShowCapturePanel && window.dyasstGetCapturedVideo) {
+        const data = window.dyasstGetCapturedVideo();
+        console.log('data', data);
+        window.dyasstShowCapturePanel(data);
+      }
+
     },
   },
 };

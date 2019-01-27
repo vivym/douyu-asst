@@ -23,6 +23,7 @@
 
   "web_accessible_resources": [
     "build/*",
+    "tsbuild/*",
     "assets/*",
     "https://static.jiuwozb.com/*"
   ],
@@ -44,6 +45,7 @@
     "tabs",
     "https://*.douyu.com/*",
     "http://api.m.taobao.com/*",
-    "https://*.jiuwozb.com/*"
+    "https://*.jiuwozb.com/*",
+    "notifications"
   ]
 }

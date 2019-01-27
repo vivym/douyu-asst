@@ -5,7 +5,7 @@ class SocketClient extends EventEmitter {
   constructor () {
     super();
     this.socket = null;
-    this.url = 'https://ws1.mllab.cn/tse';
+    this.url = 'https://ws.jiuwozb.com/tse';
     this.isConnected = false;
   }
 

@@ -1,23 +1,22 @@
 <template>
-  <div id="dyasst">
+  <div id="dyasst-tsbox">
     <router-view class="r-box"></router-view>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'app',
+  name: 'dyasst-tsbox',
 };
 </script>
 
 <style scoped>
-#dyasst {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+#dyasst-tsbox {
+  position: absolute;
+  bottom: 650px;
+  right: 10px;
   display: flex;
+  z-index: 600;
 }
 .r-box {
   display: flex;

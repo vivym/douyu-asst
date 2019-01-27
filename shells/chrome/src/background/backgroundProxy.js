@@ -44,8 +44,8 @@ class BackgroundProxy {
 
   contentMessageHandler (port, msg) {
     const funcMap = {
-      got: msg => this.onTreasureGot(msg, port),
-      got_res: msg => this.onTreasureGot(msg, port),
+      treasure_got: msg => this.onTreasureGot(msg, port),
+      treasure_got_res: msg => this.onTreasureGot(msg, port),
       geetest_data: msg => this.geetestAgent.update(msg.data, port),
       dy_login: msg => httpClient.dyLogin(msg.data, port),
       pro_tab: msg => this.onProTab(port),

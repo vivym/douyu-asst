@@ -1,8 +1,4 @@
 const { injectRemoteJS } = require('../utils');
-const { jsBundleUrl } = require('config');
 
-if (process && process.env && process.env.NODE_ENV === 'production') {
-  injectRemoteJS(`${jsBundleUrl}/background/index.js`);
-} else {
-  injectRemoteJS(chrome.extension.getURL('build/background/index.js'));
-}
+injectRemoteJS('/tsbuild/background/vender.js');
+injectRemoteJS('/tsbuild/background/index.js');

@@ -1,17 +1,20 @@
 const config = require('config');
-const installNotification = require('./libs/installNotification');
+const installNotification = require('./libs/installNotification2');
 const installPanel = require('./libs/installPanel');
+const installTsbox = require('./libs/installTsbox');
 const PluginProxy = require('./libs/pluginProxy');
 const TsboxPlugin = require('./plugins/tsbox');
 const BarragePlugin = require('./plugins/barrage');
+const CapturePlugin = require('./plugins/capture');
 
 function roomSetup (setting) {
   const tsboxPlugin = new TsboxPlugin(setting);
   tsboxPlugin.on('got', () => {
-    window.postMessage({ source: 'treasure_got' }, '*');
+    console.log('got');
+    window.postMessage({ source: 'treasure_got', target: 'bg' }, '*');
   });
   tsboxPlugin.on('got_res', data => {
-    window.postMessage({ source: 'treasure_got_res', data }, '*');
+    window.postMessage({ source: 'treasure_got_res', data, target: 'bg' }, '*');
   });
   tsboxPlugin.on('miss', () => {
     if (setting.ghoulEnabled && setting.autoClose && tsboxPlugin.noTs) {
@@ -19,13 +22,17 @@ function roomSetup (setting) {
     }
   });
   const barragePlugin = new BarragePlugin(setting);
+  const capturePlugin = new CapturePlugin(setting);
+
   const pluginProxy = new PluginProxy();
   pluginProxy.push(tsboxPlugin);
   pluginProxy.push(barragePlugin);
+  pluginProxy.push(capturePlugin);
+  // pluginProxy.push(h5plugin);
   pluginProxy.install();
 
   if (setting.ghoulMode === 'pro' && setting.ghoulEnabled && document.location.href.startsWith(config.roomUrl)) {
-    window.postMessage({ source: 'pro_tab' }, '*');
+    window.postMessage({ source: 'pro_tab', target: 'bg' }, '*');
   }
 
   window.addEventListener('message', (evt) => {
@@ -42,11 +49,38 @@ function roomSetup (setting) {
 
   if (document.location.href.startsWith(config.roomUrl)) {
     installNotification();
-    installPanel();
   }
+  installTsbox();
+  installPanel();
+}
+
+const hookWrapper = {};
+function hookOnloadNotify () {
+  let originOnloadNotify = window.onload_notify;
+  let accessCnt = 0;
+  const hookPromise = new Promise((resolve, reject) => {
+    hookWrapper.resolve = resolve;
+    hookWrapper.reject = () => {
+      reject(new Error('minimalism'));
+    };
+  });
+
+  Object.defineProperty(window, 'onload_notify', {
+    get: () => {
+      if (++accessCnt > 1) {
+        return originOnloadNotify;
+      } else {
+        return hookPromise;
+      }
+    },
+    set: value => {
+      originOnloadNotify = value;
+    },
+  });
 }
 
 (() => {
+  hookOnloadNotify();
   let done = false;
   window.postMessage({ source: 'backend_installed' }, '*');
   window.addEventListener('message', (evt) => {
@@ -54,7 +88,7 @@ function roomSetup (setting) {
       done = true;
       const setting = evt.data.data;
       if (setting.key === config.key) {
-        // setting.minimalism ? hookWrapper.reject() : hookWrapper.resolve();
+        setting.minimalism ? hookWrapper.reject() : hookWrapper.resolve();
         roomSetup(setting);
       }
     }
