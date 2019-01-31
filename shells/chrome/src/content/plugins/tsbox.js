@@ -66,6 +66,22 @@ class TsboxPlugin extends Plugin {
     this.handlePendingBoxes(boxes, this.setting.ghoulMode === 'pro');
   }
 
+  checkBoxType (box) {
+    const { boxFilter } = this.setting;
+    const treasureType = parseInt(box.treasureType, 10);
+    if (boxFilter === 'all') {
+      return true;
+    } else if (boxFilter === '100') { // 飞机
+      return treasureType === 100;
+    } else if (boxFilter === '101') { // 火箭
+      return treasureType >= 101;
+    } else if (boxFilter === '102') { // 超火
+      return treasureType >= 103;
+    } else if (boxFilter === '103') { // 飞船
+      return treasureType === 127;
+    }
+  }
+
   handlePendingBoxes (boxes, pick = true) {
     if (boxes && boxes instanceof Array) {
       boxes.forEach(box => this.pushPendingBox(box));
@@ -78,13 +94,15 @@ class TsboxPlugin extends Plugin {
     }
 
     if (!this.pendingBox.isEmpty() && this.state === 'IDLE') {
+      const box = this.pendingBox.poll();
+      if (!this.checkBoxType(box)) {
+        return this.handlePendingBoxes();
+      }
       this.noTs = false;
       this.state = 'WAITING';
       const { delayRange } = this.setting;
       const delay = Math.max(delayRange[1] - delayRange[0], 0) * Math.random() + delayRange[0];
-      const box = this.pendingBox.poll();
-      const limit = this.setting.rocketOnly ? 102 : 0;
-      const surplusTime = box.treasureType >= limit ? Math.max(box.surplusTime * 1000 - Date.now() - (this.setting.timeDelta || 0) + delay + 5, 0) : 1;
+      const surplusTime = Math.max(box.surplusTime * 1000 - Date.now() - (this.setting.timeDelta || 0) + delay + 5, 0);
       setTimeout(() => this.handleTimeupBox(box), surplusTime);
     }
 
@@ -101,8 +119,7 @@ class TsboxPlugin extends Plugin {
         this.state = 'IDLE';
         return this.handlePendingBoxes();
       }
-      const limit = this.setting.rocketOnly ? 102 : 0;
-      if (box.treasureType >= limit) {
+      if (this.checkBoxType(box)) {
         console.log('picking', box);
         this.state = 'PICKING';
         window.PlayerAsideApp.container.registry.store.dispatch({

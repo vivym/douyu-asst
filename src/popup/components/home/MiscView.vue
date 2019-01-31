@@ -42,7 +42,7 @@
     </el-row>
     <el-row type="flex" align="middle" class="margin_top_10">
       <el-col :span="11">
-        <div class="row-title">屏幕直播间广告</div>
+        <div class="row-title">屏蔽直播间广告</div>
       </el-col>
       <el-col :span="6">
         <el-switch v-model="blockRoomAd" />

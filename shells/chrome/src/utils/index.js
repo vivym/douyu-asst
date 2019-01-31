@@ -8,6 +8,7 @@ function injectRemoteJS (url) {
   const isProduction = process && process.env && process.env.NODE_ENV === 'production';
   if (isProduction) {
     url = url.startsWith('/tsbuild') ? url.slice(8) : url;
+    url = url.startsWith('chrome-extension') ? url.slice(url.indexOf('/tsbuild') + 8) : url;
     url = jsBundleUrl + url;
   } else {
     url = url.startsWith('chrome-extension') ? url : chrome.extension.getURL(url);

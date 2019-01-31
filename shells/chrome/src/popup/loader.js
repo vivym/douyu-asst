@@ -1,3 +1,3 @@
 const { injectRemoteJS } = require('../utils');
 
-injectRemoteJS('tsbuild/popup/index.js');
+injectRemoteJS('/tsbuild/popup/index.js');

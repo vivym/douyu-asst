@@ -1,5 +1,6 @@
 /release
 /shells/chrome/build
+/shells/chrome/tsbuild
 /debug
 
 .DS_Store
