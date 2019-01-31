@@ -1,7 +1,11 @@
 const FastPriorityQueue = require('fastpriorityqueue');
 const Plugin = require('./plugin');
 const decode = require('../libs/decode');
-const { sleep } = require('../../utils');
+const { sleep, waitForObj } = require('../../utils');
+const { getDid, getUid } = require('../libs/utils');
+const { Subject } = require('rxjs');
+
+const isProduction = process && process.env && process.env.NODE_ENV === 'production';
 
 class TsboxPlugin extends Plugin {
   constructor (setting) {
@@ -14,7 +18,7 @@ class TsboxPlugin extends Plugin {
   }
 
   grant () {
-    return this.setting.ghoulEnabled;
+    return true;
   }
 
   registerWebpackHooks (webpackHooker) {
@@ -53,11 +57,24 @@ class TsboxPlugin extends Plugin {
     });
   }
 
-  handlePendingBoxes (boxes) {
+  pushPendingBox (box) {
+    this.pendingBox.add(box);
+    window.dyasstTsboxSubject && window.dyasstTsboxSubject.next(box);
+  }
+
+  handleRemotePendingBoxes (boxes) {
+    this.handlePendingBoxes(boxes, this.setting.ghoulMode === 'pro');
+  }
+
+  handlePendingBoxes (boxes, pick = true) {
     if (boxes && boxes instanceof Array) {
-      boxes.forEach(box => this.pendingBox.add(box));
+      boxes.forEach(box => this.pushPendingBox(box));
     } else if (boxes) {
-      this.pendingBox.add(boxes);
+      this.pushPendingBox(boxes);
+    }
+
+    if (!pick) {
+      return;
     }
 
     if (!this.pendingBox.isEmpty() && this.state === 'IDLE') {
@@ -161,9 +178,9 @@ class TsboxPlugin extends Plugin {
     const { socketStream } = window.socketProxy;
     const { setting } = this;
     if (setting.ghoulEnabled) {
-      socketStream.subscribe('tsbox', boxes => {
-        console.log('tsbox', boxes);
-        // this.setting.ghoulEnabled && this.handlePendingBoxes(boxes);
+      socketStream.subscribe('tsboxb', box => {
+        isProduction || console.log('tsboxb', box);
+        this.handlePendingBoxes(this.dataMap([ box ]));
       });
 
       socketStream.subscribe('tslist', msg => {
@@ -172,25 +189,21 @@ class TsboxPlugin extends Plugin {
         (this.isArray(list) ? decode(list) : [list]).forEach(data => {
           data && boxes.push(decode(data));
         });
+        isProduction || console.log(boxes);
         this.handlePendingBoxes(this.dataMap(boxes));
       });
     }
-
-    const uenterThrottle = socketStream.MODULE.uenter.throttle;
-    socketStream.MODULE.uenter.throttle = function (...argv) {
-      return setting.blockEnterBarrage || uenterThrottle.call(this, ...argv);
-    };
   }
 
   installHttpHook () {
     const httpClient = window.sdkf30fc3f26aeee28b73b0('0b1d3').default;
     httpClient.applyMiddleWare('post', /\/member\/task\/redPacketReceive/i, rsp => {
-      if (rsp.geetest) {
+      if (rsp.geetest !== undefined) {
         this.state = 'GEE_TESTING';
         this.setDocTitle();
         this.emit('got');
         this.showGeeTestPanel();
-      } else if (rsp.award_type) {
+      } else if (rsp.award_type !== undefined) {
         this.emit('got_res', rsp);
         this.state = 'IDLE';
         this.handlePendingBoxes();
@@ -212,6 +225,43 @@ class TsboxPlugin extends Plugin {
       this.installSocketHook();
     } else if (obj === 'sdkf30fc3f26aeee28b73b0') {
       this.installHttpHook();
+    }
+  }
+
+  sendAutoBarrage () {
+    waitForObj(window, 'socketProxy').then(() => {
+      const msg = {
+        type: 'chatmessage',
+        col: 0,
+        content: '.',
+        dy: getDid(),
+        ifs: 0,
+        nc: 0,
+        rev: 0,
+        sender: getUid(),
+      };
+      window.socketProxy.sendMessage(msg);
+      console.log('send barrage', msg);
+    });
+  }
+
+  install () {
+    window.dyasstTsboxSubject = new Subject();
+    if (this.setting.autoSendBarrageEnabled) {
+      waitForObj(window, 'dyasstRid').then(() => {
+        const entry = `dyasstAutoSend_${window.dyasstRid}`;
+        if (window.localStorage[entry] === undefined) {
+          window.localStorage[entry] = '0';
+        }
+        const now = new Date();
+        const last = parseInt(window.localStorage[entry], 10);
+        if (new Date(last).toDateString() !== now.toDateString() || now.getTime() - last > 3 * 60 * 60 * 1000) {
+          setTimeout(() => {
+            this.sendAutoBarrage();
+            window.localStorage[entry] = Date.now();
+          }, Math.random() * 3000 + 1000);
+        }
+      });
     }
   }
 };

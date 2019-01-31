@@ -67,7 +67,6 @@ function hookImpl (modules, mId, config) {
 
 async function hook (config) {
   const modules = await getWebpackModules();
-  console.log(modules);
   Object.keys(config).forEach(mId => hookImpl(modules, mId, config[mId]));
 }
 

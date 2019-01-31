@@ -1,9 +1,11 @@
 const Plugin = require('./plugin');
+const { getUid } = require('../libs/utils');
 
 class BarragePlugin extends Plugin {
   constructor (setting) {
     super();
     this.setting = setting;
+    this.uid = null;
   }
 
   getDepObjs () {
@@ -22,16 +24,23 @@ class BarragePlugin extends Plugin {
 
   installSocketHook () {
     const { socketStream } = window.socketProxy;
-    const { setting } = this;
+    const self = this;
 
     const uenterThrottle = socketStream.MODULE.uenter.throttle;
     socketStream.MODULE.uenter.throttle = function (...argv) {
-      return setting.blockEnterBarrage || uenterThrottle.call(this, ...argv);
+      return self.setting.blockEnterBarrage || uenterThrottle.call(this, ...argv);
     };
 
     const chatmsgThrottle = socketStream.MODULE.chatmsg.throttle;
-    socketStream.MODULE.chatmsg.throttle = function (...argv) { // TODO: block draw barrage
-      return chatmsgThrottle.call(this, ...argv);
+    socketStream.MODULE.chatmsg.throttle = function (msg, ...argv) { // TODO: block draw barrage
+      if (!self.uid) {
+        self.uid = getUid();
+      }
+      if (msg.uid === self.uid && self.setting.nobleBarrageExp !== 'off') {
+        msg.nc = '1';
+        msg.nl = self.setting.nobleBarrageExp;
+      }
+      return chatmsgThrottle.call(this, msg, ...argv);
     };
     socketStream.subscribe('chatmsg', this.barrageHandler.bind(this));
   }

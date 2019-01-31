@@ -91,10 +91,24 @@
       </el-row>
       <el-row type="flex" align="middle" class="margin_top_10">
         <el-col :span="20">
-          <div class="row-title">只要火箭及以上</div>
+          <div class="row-title">自动发解毒弹幕</div>
         </el-col>
         <el-col :span="4">
-          <el-switch v-model="rocketOnly" :width="50" />
+          <el-switch v-model="autoSendBarrageEnabled" :width="50" />
+        </el-col>
+      </el-row>
+      <el-row type="flex" align="middle" class="margin_top_10">
+        <el-col :span="14">
+          <div class="row-title">宝箱过滤</div>
+        </el-col>
+        <el-col :span="10">
+          <el-select v-model="boxFilter" size="small">
+          <el-option label="全部宝箱" value="all" />
+          <el-option label="只要飞机" value="100" />
+          <el-option label="火箭及以上" value="101" />
+          <el-option label="超火及以上" value="102" />
+          <el-option label="宇宙飞船" value="103" />
+        </el-select>
         </el-col>
       </el-row>
     </el-dialog>
@@ -116,6 +130,7 @@ export default {
     rocketOnly: false,
     autoSendBarrageEnabled: true,
     settingModalShow: false,
+    boxFilter: 'all',
   }),
 
   computed: {
@@ -140,36 +155,49 @@ export default {
   watch: {
     ghoulEnabled (value) {
       this.$store.commit('SET_GHOUL_ENABLED', value);
+      this.updateSetting();
     },
     vol (value) {
       this.$store.commit('SET_VOL', value);
+      this.updateSetting();
     },
     delayRange (value) {
       this.$store.commit('SET_DELAY_RANGE', value);
+      this.updateSetting();
     },
     autoClose (value) {
       this.$store.commit('SET_AUTO_CLOSE', value);
+      this.updateSetting();
     },
     autoOpenBox (value) {
       this.$store.commit('SET_AUTO_OPEN_BOX', value);
+      this.updateSetting();
     },
     rocketOnly (value) {
       this.$store.commit('SET_ROCKET_ONLY', value);
+      this.updateSetting();
     },
     ghoulMode (value, prev) {
       if (proModeEnabled) {
         this.$store.commit('SET_GHOUL_MODE', value);
+        this.updateSetting();
       } else {
         if (value === 'pro') {
           this.$message({ message: '暂不支持高级模式', type: 'warning' });
           this.ghoulMode = 'normal';
         } else {
           this.$store.commit('SET_GHOUL_MODE', value);
+          this.updateSetting();
         }
       }
     },
     autoSendBarrageEnabled (value) {
       this.$store.commit('SET_AUTO_SEND_BARRAGE_ENABLED', value);
+      this.updateSetting();
+    },
+    boxFilter (value) {
+      this.$store.commit('SET_BOX_FILTER', value);
+      this.updateSetting();
     },
   },
 
@@ -182,6 +210,7 @@ export default {
     this.rocketOnly = this.$store.state.setting.rocketOnly;
     this.ghoulMode = this.$store.state.setting.ghoulMode;
     this.autoSendBarrageEnabled = this.$store.state.setting.autoSendBarrageEnabled;
+    this.boxFilter = this.$store.state.setting.boxFilter;
   },
 
   methods: {
@@ -190,6 +219,10 @@ export default {
     },
     sliderFormat (value) {
       return `${value}毫秒`;
+    },
+    updateSetting () {
+      const bg = chrome.extension.getBackgroundPage();
+      bg && bg.updateSetting && bg.updateSetting();
     },
   },
 };

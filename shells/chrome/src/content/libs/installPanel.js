@@ -11,7 +11,7 @@ async function installPanel () {
   wrapper.id = 'dyasst';
   document.body.insertBefore(wrapper, document.body.firstElementChild);
 
-  injectRemoteJS('chrome-extension://gbbpngofangjplfgakjffjfcphngbolm/tsbuild/content/panel.js');
+  injectRemoteJS('chrome-extension://gbbpngofangjplfgakjffjfcphngbolm/tsbuild/content/views/panel.js');
 }
 
 module.exports = installPanel;

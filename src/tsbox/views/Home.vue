@@ -1,7 +1,7 @@
 <template>
   <div class="home-wrapper">
-    <treasure-box />
-    <treasure-panel v-if="panelShow" />
+    <treasure-box v-if="boxShow" @click.native="showPanel" @close="showBox(false)" />
+    <treasure-panel v-if="panelShow" @close="showPanel(false)" />
   </div>
 </template>
 
@@ -13,8 +13,24 @@ export default {
   components: { TreasureBox, TreasurePanel },
 
   data: () => ({
+    boxShow: true,
     panelShow: false,
   }),
+
+  methods: {
+    showBox (show = true) {
+      this.boxShow = show;
+      if (!this.boxShow) {
+        const el = document.querySelector('.TreasureWrap');
+        if (el) {
+          el.style.visibility = 'visible';
+        }
+      }
+    },
+    showPanel (show = true) {
+      this.panelShow = show;
+    },
+  },
 };
 </script>
 

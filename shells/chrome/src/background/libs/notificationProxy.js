@@ -1,9 +1,13 @@
 const socketClient = require('./socketClient');
+const localStorageProxy = require('./localStorageProxy');
 
 class NotificationProxy {
   notificationHandler (data) {
     const { cmd, notificationId, options } = data;
-    if (!cmd || cmd === 'create') {
+    if (!cmd || cmd === 'create' || cmd === 'stream_noti') {
+      if (cmd === 'stream_noti' && !localStorageProxy.entry().setting.pcNotificationEnabled) {
+        return;
+      }
       chrome.notifications.create(notificationId, options, notificationId => {
 
       });
@@ -21,11 +25,14 @@ class NotificationProxy {
   init () {
     chrome.notifications.getPermissionLevel(level => {
       if (level === 'granted') {
-        socketClient.register('noti', data => this.notificationHandler.bind(this));
+        socketClient.subscribe('noti', this.notificationHandler.bind(this));
       } else {
         // TODO
       }
     });
+    if (localStorageProxy.entry().setting.pcNotificationEnabled) {
+      socketClient.sendMessage('sub', { rid: '99999' });
+    }
   }
 };
 

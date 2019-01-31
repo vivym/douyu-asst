@@ -21,6 +21,10 @@ class PluginProxy {
     plugin.grant() && this.plugins.push(plugin);
   }
 
+  updateSetting (setting) {
+    this.plugins.forEach(plugin => plugin.updateSetting(setting));
+  }
+
   install () {
     this.plugins.forEach(plugin => {
       plugin.registerWebpackHooks(this.webpackHooker);

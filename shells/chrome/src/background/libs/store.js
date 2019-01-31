@@ -15,7 +15,12 @@ module.exports = {
     netTimeSync: true,
     ghoulMode: 'normal',
     autoSendBarrageEnabled: true,
+    notificationShow: true,
+    blockRoomAd: false,
+    nobleBarrageExp: 'off',
+    boxFilter: 'all',
     gfksax: 6,
+    pcNotificationEnabled: true,
   },
   stat: {
     box: 0,

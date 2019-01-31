@@ -16,7 +16,6 @@ export default {
   bottom: 650px;
   right: 10px;
   display: flex;
-  z-index: 600;
 }
 .r-box {
   display: flex;

@@ -1,3 +1,4 @@
+const { EventEmitter } = require('events');
 const socketClient = require('./socketClient');
 const Ajv = require('ajv');
 const config = require('config');
@@ -12,13 +13,25 @@ const validate = ajv.compile({
   },
 });
 
-class GhoulProxy {
+class GhoulProxy extends EventEmitter {
   constructor () {
-    this.tab = null;
-    this.port = null;
-    this.lastBoxes = new Set();
+    super();
+    this.boxSet = new Set();
     this.fansMedalList = null;
-    socketClient.register('tsbox', this.onTsbox.bind(this));
+    socketClient.subscribe('tsbox', this.onTsbox.bind(this));
+    this.pendingBox = [];
+    setInterval(() => {
+      const now = parseInt(Date.now() / 1000, 10);
+      while (this.pendingBox.length > 0) {
+        const box = this.pendingBox[0];
+        if (box.surplusTime + 3 < now) {
+          this.pendingBox.shift();
+          this.boxSet.delete(box.rpid);
+        } else {
+          break;
+        }
+      }
+    }, 3 * 60 * 1000);
   }
 
   checkPermission () {
@@ -40,57 +53,66 @@ class GhoulProxy {
 
   boxDiff (boxes) {
     const diffBoxes = [];
-    const newSet = new Set();
     boxes.forEach(box => {
-      newSet.add(box.rpid);
-      if (!this.lastBoxes.has(box.rpid)) {
+      if (!this.boxSet.has(box.rpid)) {
         diffBoxes.push(box);
+        this.boxSet.add(box.rpid);
       }
     });
-    this.lastBoxes.clear();
-    this.lastBoxes = newSet;
     return diffBoxes;
   }
 
   onTsbox (boxes) {
-    console.log(boxes);
-    const { port } = this;
     if (validate(boxes)) {
-      port && !port.isDisconnected && port.postMessage({
-        type: 'tsbox',
-        data: this.boxDiff(boxes).map(box => {
-          return {
-            roomId: box.rid,
-            treasureType: box.rpt,
-            treasureId: box.rpid,
-            surplusTime: parseInt(new Date(box.ot).getTime() / 1000, 10),
-          };
-        }) });
+      const newBoxes = this.boxDiff(boxes);
+      this.emit('tsboxes', newBoxes);
+      newBoxes.forEach(box => this.pendingBox.push({
+        roomId: box.rid,
+        treasureType: box.rpt,
+        treasureId: box.rpid,
+        surplusTime: parseInt(new Date(box.ot).getTime() / 1000, 10),
+        snk: box.snk,
+      }));
+      this.pendingBox.sort((a, b) => a.surplusTime - b.surplusTime);
     } else {
       console.log('invalid boxes:', boxes);
     }
   }
 
-  reset () {
-    this.tab = null;
-    this.port = null;
-    socketClient.destroy();
-  }
-
-  onPortDisconnected (port) {
-    port.isDisconnected = true;
-    this.fansMedalList = null;
-    this.lastBoxes = new Set();
-    this.reset();
-  }
-
-  setTab (tab, port) {
-    if (this.tab && tab.id !== this.tab.id) {
-      this.reset();
+  fetch (options) {
+    const { limit, count = 20 } = options;
+    while (this.pendingBox.length > 0) {
+      if (this.pendingBox[0].surplusTime < limit) {
+        this.pendingBox.shift();
+      } else {
+        break;
+      }
     }
-    port.onDisconnect.addListener(() => this.onPortDisconnected(port));
-    this.tab = tab;
-    this.port = port;
+    const { boxFilter } = localStorageProxy.entry().setting;
+    return this.pendingBox.filter(box => {
+      const treasureType = parseInt(box.treasureType, 10);
+      if (boxFilter === 'all') {
+        return true;
+      } else if (boxFilter === '100') { // 飞机
+        return treasureType === 100;
+      } else if (boxFilter === '101') { // 火箭
+        return treasureType >= 101;
+      } else if (boxFilter === '102') { // 超火
+        return treasureType >= 103;
+      } else if (boxFilter === '103') { // 飞船
+        return treasureType === 127;
+      }
+    }).slice(0, Math.min(this.pendingBox.length, count));
+  }
+
+  deleteBox (rpid) {
+    for (let i = 0; i < this.pendingBox.length; ++i) {
+      const box = this.pendingBox[i];
+      if (box.treasureId === rpid) {
+        this.pendingBox.splice(i, 1);
+        return;
+      }
+    }
   }
 };
 

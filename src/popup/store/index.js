@@ -25,6 +25,10 @@ const vuexLocal = new VuexPersistence({
                        mutation.type === 'SET_NET_TIME_SYNC' ||
                        mutation.type === 'SET_GHOUL_MODE' ||
                        mutation.type === 'SET_AUTO_SEND_BARRAGE_ENABLED' ||
+                       mutation.type === 'SET_NOTIFICATION_SHOW' ||
+                       mutation.type === 'SET_BLOCK_ROOM_AD' ||
+                       mutation.type === 'SET_NOBLE_BARRAGE_EXP' ||
+                       mutation.type === 'SET_BOX_FILTER' ||
                        mutation.type === 'SET_ZAN' || mutation.type === 'SET_WEN' ||
                        mutation.type === 'SET_SONG' || mutation.type === 'SET_SILVER' ||
                        mutation.type === 'SET_DAY' || mutation.type === 'SET_BOX'),
@@ -47,6 +51,10 @@ const settingStore = {
     netTimeSync: true,
     ghoulMode: 'normal',
     autoSendBarrageEnabled: true,
+    notificationShow: true,
+    blockRoomAd: false,
+    nobleBarrageExp: 'off',
+    boxFilter: 'all',
     gfksax: 6,
   },
 
@@ -95,6 +103,18 @@ const settingStore = {
     },
     SET_AUTO_SEND_BARRAGE_ENABLED (state, value) {
       state.autoSendBarrageEnabled = value;
+    },
+    SET_NOTIFICATION_SHOW (state, value) {
+      state.notificationShow = value;
+    },
+    SET_BLOCK_ROOM_AD (state, value) {
+      state.blockRoomAd = value;
+    },
+    SET_NOBLE_BARRAGE_EXP (state, value) {
+      state.nobleBarrageExp = value;
+    },
+    SET_BOX_FILTER (state, value) {
+      state.boxFilter = value;
     },
   },
 };

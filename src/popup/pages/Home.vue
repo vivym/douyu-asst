@@ -11,6 +11,9 @@
       <el-tab-pane label="其他">
         <misc-view />
       </el-tab-pane>
+      <el-tab-pane label="账号">
+        <user-view />
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -20,9 +23,10 @@ import HeaderBar from 'src/popup/components/home/HeaderBar.vue';
 import TsHunterView from 'src/popup/components/home/TsHunterView.vue';
 import AnswerView from 'src/popup/components/home/AnswerView.vue';
 import MiscView from 'src/popup/components/home/MiscView.vue';
+import UserView from 'src/popup/components/home/UserView.vue';
 
 export default {
-  components: { HeaderBar, TsHunterView, AnswerView, MiscView },
+  components: { HeaderBar, TsHunterView, AnswerView, MiscView, UserView },
 };
 </script>
 

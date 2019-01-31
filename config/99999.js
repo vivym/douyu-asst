@@ -14,5 +14,7 @@ module.exports = {
 
   jsBundleUrl: 'https://static.jiuwozb.com/tsbuild_99999',
 
-  key: 'b322b2',
+  versionTitle: '内测版',
+
+  key: 'b321bf',
 };

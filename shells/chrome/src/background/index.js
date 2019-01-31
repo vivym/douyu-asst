@@ -1,12 +1,14 @@
 const localStorageProxy = require('./libs/localStorageProxy');
-const socketClient = require('./libs/socketClient');
+const httpClient = require('./libs/httpClient');
 const BackgroundProxy = require('./backgroundProxy');
 const NotificationProxy = require('./libs/notificationProxy');
 const installGlobals = require('./installGlobals');
 
+window.dyasstLoginStatus = 0;
+
 localStorageProxy.init({ entryKey: 'dyasst' });
 
-socketClient.connect();
+httpClient.init();
 
 const backgroundProxy = new BackgroundProxy();
 backgroundProxy.setup();

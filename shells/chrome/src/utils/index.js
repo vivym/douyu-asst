@@ -47,10 +47,19 @@ async function waitForDom (selector, interval = 200) {
   }
 }
 
+function getReactInstance (el) {
+  for (let key of Object.keys(el)) {
+    if (key.startsWith('__reactInternalInstance')) {
+      return el[key].return;
+    }
+  }
+}
+
 module.exports = {
   sleep,
   injectRemoteJS,
   playAudio,
   waitForObj,
   waitForDom,
+  getReactInstance,
 };

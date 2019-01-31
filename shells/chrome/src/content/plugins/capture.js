@@ -32,7 +32,7 @@ class CapturePlugin extends Plugin {
       wrapper.id = 'dyasst-capture';
       document.body.insertBefore(wrapper, document.body.firstElementChild);
 
-      injectRemoteJS('chrome-extension://gbbpngofangjplfgakjffjfcphngbolm/tsbuild/content/capture.js');
+      injectRemoteJS('chrome-extension://gbbpngofangjplfgakjffjfcphngbolm/tsbuild/content/views/capture.js');
     });
     waitForDom('video').then(videoEl => {
       waitForObj(videoEl, 'currentTime').then(() => {

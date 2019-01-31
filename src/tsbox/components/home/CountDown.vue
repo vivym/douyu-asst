@@ -12,6 +12,7 @@ export default {
       type: Number,
       default: 30,
     },
+    token: null,
   },
   
   data: () => ({
@@ -20,11 +21,18 @@ export default {
 
   created () {
     this.value = this.num;
-    const token = setInterval(() => {
+    this.oken = setInterval(() => {
       if (--this.value <= 0) {
-        clearInterval(token);
+        clearInterval(this.token);
+        this.$emit('timeup');
       }
     }, 1000);
+  },
+
+  beforeDestroy () {
+    if (this.token) {
+      clearInterval(this.token);
+    }
   }
 };
 </script>

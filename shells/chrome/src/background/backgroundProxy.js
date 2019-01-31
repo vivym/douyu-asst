@@ -7,6 +7,7 @@ const config = require('config');
 class BackgroundProxy {
   constructor () {
     this.ghoulProxy = new GhoulProxy();
+    this.contentPages = new Set();
   }
 
   setup () {
@@ -15,10 +16,15 @@ class BackgroundProxy {
         this.onContentConnected(port);
       }
     });
+    window.updateSetting = () => {
+      const setting = localStorageProxy.entry().setting;
+      this.contentPages.forEach(port => port.postMessage({ type: 'update_setting', data: setting }));
+    };
   }
 
   onContentConnected (port) {
     const { setting } = localStorageProxy.entry();
+    this.contentPages.add(port);
     if (setting) {
       new Promise(resolve => {
         if (setting.netTimeSync) {
@@ -35,11 +41,16 @@ class BackgroundProxy {
           setting.timeDelta = 0;
         }
         setting.key = config.key;
-        port && !port.isDisconnected && port.postMessage({ type: 'setting', data: setting });
+        this.contentPages.has(port) && port.postMessage({ type: 'setting', data: setting });
       });
     }
 
     port.onMessage.addListener(this.contentMessageHandler.bind(this, port));
+    port.onDisconnect.addListener(this.onContentDisconnected.bind(this, port));
+  }
+
+  onContentDisconnected (port) {
+    this.contentPages.delete(port);
   }
 
   contentMessageHandler (port, msg) {
@@ -50,18 +61,37 @@ class BackgroundProxy {
       dy_login: msg => httpClient.dyLogin(msg.data, port),
       pro_tab: msg => this.onProTab(port),
       fans_medal_list: msg => this.onFansMedalList(msg.data, port),
+      set_pc_notification: msg => this.onSetPcNotification(msg.data, port),
+      req_box: msg => this.onReqBox(msg.data, port),
+      delete_box: msg => this.onDeleteBox(msg.data, port),
     };
 
     const { type } = msg;
     funcMap[type] && funcMap[type](msg);
   }
 
+  onDeleteBox (data) {
+    this.ghoulProxy.deleteBox(data.rpid);
+  }
+
+  onReqBox (data, port) {
+    const boxes = this.ghoulProxy.fetch(data);
+    this.contentPages.has(port) && port.postMessage({ type: 'tsbox', data: boxes });
+  }
+
+  onSetPcNotification (data) {
+    const { setting } = localStorageProxy.entry();
+    if (setting.pcNotificationEnabled !== data) {
+      localStorageProxy.set('setting', { ...setting, pcNotificationEnabled: data });
+    }
+  }
+
   onFansMedalList (data) {
-    this.ghoulProxy.setFansMedalList(data);
+    // this.ghoulProxy.setFansMedalList(data);
   }
 
   onProTab (port) {
-    this.ghoulProxy.setTab(port.sender.tab, port);
+    // this.ghoulProxy.setTab(port.sender.tab, port);
   }
 
   resetStat (stat, today) {
@@ -80,19 +110,19 @@ class BackgroundProxy {
 
   onTreasureGot (msg, port) {
     const { type, data } = msg;
-    if (type === 'got') {
+    if (type === 'treasure_got') {
       const { setting } = localStorageProxy.entry();
       playAudio('https://static.jiuwozb.com/assets/audio/ding.wav', setting.vol / 100);
-      const { stat } = localStorageProxy.entry();
+      const stat = localStorageProxy.entry().stat;
       const today = this.getToday();
       if (stat.day !== today) {
         this.resetStat(stat, today);
       }
       ++stat.box;
       localStorageProxy.set('stat', stat);
-    } else if (type === 'got_res') {
+    } else if (type === 'treasure_got_res') {
       // this.geetestAgent.upload(data);
-      const { stat } = localStorageProxy.entry();
+      const stat = localStorageProxy.entry().stat;
       const today = this.getToday();
       if (stat.day !== today) {
         this.resetStat(stat, today);
@@ -116,7 +146,7 @@ class BackgroundProxy {
       }
       /* eslint-enable */
       localStorageProxy.set('stat', stat);
-      port && !port.isDisconnected && port.postMessage({ type: 'sync' });
+      this.contentPages.has(port) && port.postMessage({ type: 'sync' });
     }
   }
 };

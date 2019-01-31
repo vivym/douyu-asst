@@ -1,11 +1,15 @@
 const config = require('config');
-const installNotification = require('./libs/installNotification2');
-const installPanel = require('./libs/installPanel');
+// const installPanel = require('./libs/installPanel');
 const installTsbox = require('./libs/installTsbox');
 const PluginProxy = require('./libs/pluginProxy');
 const TsboxPlugin = require('./plugins/tsbox');
 const BarragePlugin = require('./plugins/barrage');
-const CapturePlugin = require('./plugins/capture');
+// const CapturePlugin = require('./plugins/capture');
+const BarrageQueryPlugin = require('./plugins/barrage_query');
+const NotificationPlugin = require('./plugins/notification');
+const GiftPlugin = require('./plugins/gift');
+const RoomInfoPlugin = require('./plugins/room_info');
+const AdblockPlugin = require('./plugins/adblock');
 
 function roomSetup (setting) {
   const tsboxPlugin = new TsboxPlugin(setting);
@@ -14,6 +18,7 @@ function roomSetup (setting) {
     window.postMessage({ source: 'treasure_got', target: 'bg' }, '*');
   });
   tsboxPlugin.on('got_res', data => {
+    console.log('got_res', data);
     window.postMessage({ source: 'treasure_got_res', data, target: 'bg' }, '*');
   });
   tsboxPlugin.on('miss', () => {
@@ -22,16 +27,29 @@ function roomSetup (setting) {
     }
   });
   const barragePlugin = new BarragePlugin(setting);
-  const capturePlugin = new CapturePlugin(setting);
+  // const capturePlugin = new CapturePlugin(setting);
+  const barrageQueryPlugin = new BarrageQueryPlugin(setting);
+  const notificationPlugin = new NotificationPlugin(setting);
+  const giftPlugin = new GiftPlugin(setting, window.dyasstReactAgent);
+  const roomInfoPlugin = new RoomInfoPlugin(setting);
+  const adblockPlugin = new AdblockPlugin(setting);
 
   const pluginProxy = new PluginProxy();
   pluginProxy.push(tsboxPlugin);
   pluginProxy.push(barragePlugin);
-  pluginProxy.push(capturePlugin);
-  // pluginProxy.push(h5plugin);
-  pluginProxy.install();
+  // pluginProxy.push(capturePlugin);
+  pluginProxy.push(barrageQueryPlugin);
+  pluginProxy.push(notificationPlugin);
+  pluginProxy.push(giftPlugin);
+  pluginProxy.push(roomInfoPlugin);
+  pluginProxy.push(adblockPlugin);
+  try {
+    pluginProxy.install();
+  } catch (err) {
+    console.log(err);
+  }
 
-  if (setting.ghoulMode === 'pro' && setting.ghoulEnabled && document.location.href.startsWith(config.roomUrl)) {
+  if (document.location.href.startsWith(config.roomUrl)) {
     window.postMessage({ source: 'pro_tab', target: 'bg' }, '*');
   }
 
@@ -41,20 +59,18 @@ function roomSetup (setting) {
         window.close();
       }
     } else if (evt.source === window && evt.data && evt.data.source === 'tsbox') {
-      if (setting.ghoulMode === 'pro' && setting.ghoulEnabled) {
-        tsboxPlugin.handlePendingBoxes(evt.data.data);
-      }
+      tsboxPlugin.handleRemotePendingBoxes(evt.data.data);
+    } else if (evt.source === window && evt.data && evt.data.source === 'update_setting') {
+      pluginProxy.updateSetting(evt.data.data);
     }
   });
 
-  if (document.location.href.startsWith(config.roomUrl)) {
-    installNotification();
-  }
   installTsbox();
-  installPanel();
+  // installPanel();
 }
 
 const hookWrapper = {};
+/*
 function hookOnloadNotify () {
   let originOnloadNotify = window.onload_notify;
   let accessCnt = 0;
@@ -78,9 +94,10 @@ function hookOnloadNotify () {
     },
   });
 }
+*/
 
 (() => {
-  hookOnloadNotify();
+  // hookOnloadNotify();
   let done = false;
   window.postMessage({ source: 'backend_installed' }, '*');
   window.addEventListener('message', (evt) => {
@@ -88,7 +105,7 @@ function hookOnloadNotify () {
       done = true;
       const setting = evt.data.data;
       if (setting.key === config.key) {
-        setting.minimalism ? hookWrapper.reject() : hookWrapper.resolve();
+        setting.minimalism && hookWrapper.resolve ? hookWrapper.reject() : hookWrapper.resolve();
         roomSetup(setting);
       }
     }

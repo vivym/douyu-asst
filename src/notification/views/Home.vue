@@ -1,9 +1,8 @@
 <template>
-  <div class="home-wrapper">
-    <img class="button close-button"
-          :src="closeIconUrl"
-          title="关闭"
-          @click="close"/>
+  <div v-show="show" class="home-wrapper">
+    <div class="button" @click="close">
+      <img class="close-button" :src="closeIconUrl" title="关闭" />
+    </div>
     <div class="switch-row">
       <el-switch class="switch"
                   v-model="pcNotificationEnabled"
@@ -28,10 +27,25 @@ export default {
     pcNotificationEnabled: true,
     qrcodeUrl: 'https://static.jiuwozb.com/assets/images/notification_qrcode_ff.jpg',
     label2_0: config.notification.label2_0,
+    show: true,
   }),
+
+  watch: {
+    pcNotificationEnabled (value) {
+      window.postMessage({ source: 'set_pc_notification', data: value, target: 'bg' }, '*')
+    },
+  },
+
+  created () {
+    this.pcNotificationEnabled = window.dyasstPcNotificationEnabled;
+    window.dyasstShowNotification = show => {
+      this.show = show;
+    };
+  },
+
   methods: {
     close () {
-
+      this.show = false;
     },
   },
 };
@@ -44,16 +58,15 @@ export default {
     right: 0;
     width: 103px;
     height: 245px;
-    z-index: 10;
+    z-index: 3000;
     background-image: url(https://static.jiuwozb.com/assets/images/notification_bg.png);
-    pointer-events: all;
   }
   .button:hover {
     cursor: pointer;
   }
   .close-button {
     position: absolute;
-    right: 0;
+    right: 5px;
     top: 1px;
     width: 16px;
     height: 16px;
@@ -71,9 +84,6 @@ export default {
   .switch-row p {
     color: white;
     margin-left: 5px;
-  }
-  .switch {
-
   }
   .qrcode {
     position: absolute;

@@ -5,7 +5,7 @@
            :src="avatarUrl" />
     </div>
     <p class="header-title">{{title}}</p>
-    <div class="header-extra" @click.prevent="gotoMyHome">定制版</div>
+    <div class="header-extra" @click.prevent="gotoMyHome">{{version}}</div>
   </div>
 </template>
 
@@ -16,6 +16,7 @@ export default {
   data: () => ({
     title: config.headerTitle,
     avatarUrl: config.avatarUrl,
+    version: config.versionTitle,
   }),
   methods: {
     gotoRoom () {

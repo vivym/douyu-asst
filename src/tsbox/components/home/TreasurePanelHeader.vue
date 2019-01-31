@@ -2,11 +2,11 @@
   <div class="header-wrapper">
     <div class="refresh-time">{{refreshTimeStr}}</div>
     <div class="btn-row">
-      <div class="btn">
+      <div class="btn" @click="refresh">
         <img src="https://static.jiuwozb.com/assets/images/tsbox/icon_next.png" />
         <i class="margin_left_5">换一批</i>
       </div>
-      <div class="btn margin_left_20">
+      <div class="btn margin_left_20" @click="openAll">
         <img src="https://static.jiuwozb.com/assets/images/tsbox/icon_next.png" />
         <i class="margin_left_5">全部打开</i>
       </div>
@@ -27,7 +27,12 @@ export default {
   },
 
   methods: {
-
+    refresh () {
+      this.$emit('refresh');
+    },
+    openAll () {
+      this.$emit('openAll');
+    },
   },
 };
 </script>

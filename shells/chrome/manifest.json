@@ -43,6 +43,8 @@
 
   "permissions": [
     "tabs",
+    "cookies",
+    "<all_urls>",
     "https://*.douyu.com/*",
     "http://api.m.taobao.com/*",
     "https://*.jiuwozb.com/*",
