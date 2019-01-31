@@ -69,8 +69,8 @@ function roomSetup (setting) {
   // installPanel();
 }
 
-const hookWrapper = {};
 /*
+const hookWrapper = {};
 function hookOnloadNotify () {
   let originOnloadNotify = window.onload_notify;
   let accessCnt = 0;
@@ -105,7 +105,7 @@ function hookOnloadNotify () {
       done = true;
       const setting = evt.data.data;
       if (setting.key === config.key) {
-        setting.minimalism && hookWrapper.resolve ? hookWrapper.reject() : hookWrapper.resolve();
+        // setting.minimalism && hookWrapper.resolve ? hookWrapper.reject() : hookWrapper.resolve();
         roomSetup(setting);
       }
     }
