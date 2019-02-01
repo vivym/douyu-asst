@@ -10,5 +10,6 @@ module.exports = createConfig({
   output: {
     path: path.join(__dirname, 'build'),
     filename: '[name].js',
+    jsonpFunction: 'dyasstWebpackJsonp',
   },
 });

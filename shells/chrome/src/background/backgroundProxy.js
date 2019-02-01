@@ -64,10 +64,15 @@ class BackgroundProxy {
       set_pc_notification: msg => this.onSetPcNotification(msg.data, port),
       req_box: msg => this.onReqBox(msg.data, port),
       delete_box: msg => this.onDeleteBox(msg.data, port),
+      open_page: msg => this.onOpenPage(msg.data, port),
     };
 
     const { type } = msg;
     funcMap[type] && funcMap[type](msg);
+  }
+
+  onOpenPage (data) {
+    chrome.tabs.create(data);
   }
 
   onDeleteBox (data) {

@@ -200,7 +200,7 @@ function installReactGlobalHook () {
   window.__REACT_DEVTOOLS_GLOBAL_HOOK__.nativeWeakMap = WeakMap;
   window.__REACT_DEVTOOLS_GLOBAL_HOOK__.nativeSet = Set;
   window.__REACT_DEVTOOLS_GLOBAL_HOOK__.on('renderer', evt => {
-    window.postMessage({ source: 'react-detected' });
+    window.postMessage({ source: 'react-detected' }, '*');
   });
 }
 

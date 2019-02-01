@@ -6,7 +6,6 @@ module.exports = createConfig({
     room: './src/content/room.js',
     yuba: './src/content/yuba.js',
     extra: './src/content/extra.js',
-    globalHook: './src/content/globalHook.js',
     'views/panel': './src/content/views/panel.js',
     'views/notification': './src/content/views/notification.js',
     'views/tsbox': './src/content/views/tsbox.js',
@@ -16,6 +15,7 @@ module.exports = createConfig({
   output: {
     path: path.join(__dirname, 'tsbuild', 'content'),
     filename: '[name].js',
+    jsonpFunction: 'dyasstWebpackJsonp',
   },
   optimization: {
     splitChunks: {

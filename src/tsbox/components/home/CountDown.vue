@@ -1,7 +1,7 @@
 <template>
   <div class="count-down-wrapper">
     <div class="title">倒计时</div>
-    <div class="time">00:{{value}}</div>
+    <div class="time">{{time}}</div>
   </div>
 </template>
 
@@ -19,6 +19,12 @@ export default {
     value: 0,
   }),
 
+  computed: {
+    time () {
+      return `${this.prefixInt(parseInt(this.value / 60, 10), 2)}:${this.prefixInt(parseInt(this.value % 60, 10), 2)}`;
+    },
+  },
+
   created () {
     this.value = this.num;
     this.oken = setInterval(() => {
@@ -33,7 +39,13 @@ export default {
     if (this.token) {
       clearInterval(this.token);
     }
-  }
+  },
+
+  methods: {
+    prefixInt (num, length) {
+      return (Array(length).join('0') + num).slice(-length);
+    },
+  },
 };
 </script>
 

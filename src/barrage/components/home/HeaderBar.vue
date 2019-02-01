@@ -8,7 +8,7 @@
       </div>
       <div class="row margin_top_5"><div ref="level"></div></div>
     </div>
-    <div class="btn">TA在其他房间的弹幕</div>
+    <div class="btn" @click="more">{{moreTitle}}</div>
   </div>
 </template>
 
@@ -29,7 +29,9 @@ export default {
     },
   },
 
-  data: () => ({}),
+  data: () => ({
+    moreTitle: 'TA在其他房间的弹幕',
+  }),
 
   mounted () {
     this.$refs.level.parentElement.appendChild(document.querySelector('.UserCardBage').cloneNode(true));
@@ -38,6 +40,9 @@ export default {
   methods: {
     openHomePage () {
       window.open(`https://yuba.douyu.com/user/main/${this.userId}`, '_blank');
+    },
+    more () {
+      this.moreTitle = '敬请期待';
     },
   },
 };
@@ -77,6 +82,7 @@ export default {
     padding-left: 15px;
     padding-right: 15px;
     user-select: none;
+    width: 150px;
   }
   .btn:hover {
     cursor: pointer;
@@ -99,3 +105,10 @@ export default {
     margin-top: 5px;
   }
 </style>
+
+<style>
+  .dyasst-msgbox {
+    z-index: 4000;
+  }
+</style>
+

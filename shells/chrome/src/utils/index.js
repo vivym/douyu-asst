@@ -18,6 +18,8 @@ function injectRemoteJS (url) {
   script.src = url;
   document.documentElement.appendChild(script);
   script.parentNode.removeChild(script);
+
+  return script;
 }
 
 function playAudio (src, vol) {

@@ -16,12 +16,15 @@ class GiftPlugin extends Plugin {
     } else if (gift.id === 20000) { // 鱼丸
       gift.batchDesc = [ '长长久久', '赞一发', '我爱你', '一生一世', '溜溜溜' ];
       gift.batchNumArr = [ 99, 233, 520, 1314, 6666 ];
+      gift.intro = 'Powered By 摸金插件';
     } else if (gift.id === 20137) { // 荒古宝典
       gift.batchDesc = [ '长长久久', '赞一发', '我爱你', '一生一世', '溜溜溜' ];
       gift.batchNumArr = [ 99, 233, 520, 1314, 6666 ];
+      gift.intro = 'Powered By 摸金插件';
     } else if (gift.id === 20138) { // 挑战书
       gift.batchDesc = [ '长长久久', '赞一发', '我爱你', '一生一世', '溜溜溜' ];
       gift.batchNumArr = [ 99, 233, 520, 1314, 6666 ];
+      gift.intro = 'Powered By 摸金插件';
     }
   }
 
@@ -34,6 +37,7 @@ class GiftPlugin extends Plugin {
           isBatch: 1,
           descList: [ '长长久久', '赞一发', '我爱你', '一生一世', '溜溜溜' ],
           numList: [ 99, 233, 520, 1314, 6666 ],
+          intro: 'Powered By 摸金插件',
         };
         Object.keys(propGiftConfigs).forEach(id => {
           if (!batchGiftConfigs[id]) {

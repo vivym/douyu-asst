@@ -94,11 +94,11 @@ class GhoulProxy extends EventEmitter {
       if (boxFilter === 'all') {
         return true;
       } else if (boxFilter === '100') { // 飞机
-        return treasureType === 100;
+        return [100, 104, 105].includes(treasureType);
       } else if (boxFilter === '101') { // 火箭
-        return treasureType >= 101;
+        return treasureType >= 101 && ![104, 105].includes(treasureType);
       } else if (boxFilter === '102') { // 超火
-        return treasureType >= 103;
+        return treasureType >= 103 && ![104, 105, 119].includes(treasureType);
       } else if (boxFilter === '103') { // 飞船
         return treasureType === 127;
       }

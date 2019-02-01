@@ -51,7 +51,8 @@ export default {
 
   methods: {
     getTsConfig (rpt) {
-      if (rpt === '100') {
+      rpt = rpt.toString();
+      if (rpt === '100' || rpt === '104' || rpt === '105') {
         rpt = '100';
       } else if (rpt === '103') {
         rpt = '102';

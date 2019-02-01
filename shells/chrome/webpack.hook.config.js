@@ -3,10 +3,10 @@ const createConfig = require('../createConfig');
 
 module.exports = createConfig({
   entry: {
-    index: './src/popup/index.js',
+    globalHook: './src/content/globalHook.js',
   },
   output: {
-    path: path.join(__dirname, 'tsbuild', 'popup'),
+    path: path.join(__dirname, 'tsbuild', 'content'),
     filename: '[name].js',
     jsonpFunction: 'dyasstWebpackJsonp',
   },

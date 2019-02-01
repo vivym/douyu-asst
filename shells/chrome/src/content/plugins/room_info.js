@@ -19,13 +19,17 @@ class RoomInfoPlugin extends Plugin {
     try {
       const res = await axios.get(`https://www.douyu.com/betard/${this.roomId}`);
       if (res.status === 200) {
-        this.roomInfo = res.data;
-        this.roomInfoHandler(res.data);
+        if (typeof res.data === 'object') {
+          this.roomInfo = res.data;
+          this.roomInfoHandler(res.data);
+        } else {
+          console.log('cannot fetch room info');
+        }
       } else {
-        console.log(res);
+        console.error(res);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   }
 

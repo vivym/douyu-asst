@@ -97,7 +97,7 @@ export default {
     },
     requestBox () {
       const msg = { source: 'req_box', data: { limit: parseInt(Date.now() / 1000, 10) + 5, count: 20 }, target: 'bg' };
-      window.postMessage(msg);
+      window.postMessage(msg, '*');
       if (this.token) {
         clearTimeout(this.token);
         this.token = null;
@@ -113,8 +113,8 @@ export default {
           this.tsboxes.splice(i, 1);
           isProduction || console.log(box, type);
           if (type === 'enter') {
-            window.postMessage({ source: 'delete_box', data: { rpid }, target: 'bg' });
-            window.open(`https://www.douyu.com/${box.rid}`, '_blank');
+            window.postMessage({ source: 'delete_box', data: { rpid }, target: 'bg' }, '*');
+            window.postMessage({ source: 'open_page', data: { url: `https://www.douyu.com/${box.rid}` }, target: 'bg' }, '*');
           }
           break;
         }

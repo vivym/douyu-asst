@@ -6,10 +6,12 @@
   "scripts": {
     "dev:popup": "cd shells/chrome && webpack --mode development --watch --hide-modules --config webpack.popup.config",
     "dev:content": "cd shells/chrome && webpack --mode development --watch --hide-modules --config webpack.content.config",
+    "dev:hook": "cd shells/chrome && webpack --mode development --watch --hide-modules --config webpack.hook.config",
     "dev:bg": "cd shells/chrome && webpack --mode development --watch --hide-modules --config webpack.background.config",
     "dev:webext": "cd shells/chrome && webpack --mode development --watch --hide-modules --config webpack.webext.config",
     "build:popup": "cd shells/chrome && cross-env NODE_ENV=production webpack --mode production --progress --hide-modules --config webpack.popup.config",
     "build:content": "cd shells/chrome && cross-env NODE_ENV=production webpack --mode production --progress --hide-modules --config webpack.content.config",
+    "build:hook": "cd shells/chrome && cross-env NODE_ENV=production webpack --mode production --progress --hide-modules --config webpack.hook.config",
     "build:bg": "cd shells/chrome && cross-env NODE_ENV=production webpack --mode production --progress --hide-modules --config webpack.background.config",
     "build:webext": "cd shells/chrome && cross-env NODE_ENV=production webpack --mode production --progress --hide-modules --config webpack.webext.config"
   },
@@ -20,6 +22,7 @@
     "babel-eslint": "^10.0.1",
     "buble": "^0.19.6",
     "buble-loader": "^0.5.1",
+    "cache-loader": "^2.0.1",
     "case-sensitive-paths-webpack-plugin": "^2.1.2",
     "cross-env": "^5.2.0",
     "css-loader": "^2.1.0",
@@ -51,7 +54,6 @@
   "dependencies": {
     "animejs": "^3.0.1",
     "axios": "^0.18.0",
-    "cache-loader": "^2.0.1",
     "element-ui": "^2.4.11",
     "fastpriorityqueue": "^0.6.1",
     "fingerprintjs2": "^2.0.6",

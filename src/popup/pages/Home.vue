@@ -11,7 +11,7 @@
       <el-tab-pane label="其他">
         <misc-view />
       </el-tab-pane>
-      <el-tab-pane label="账号">
+      <el-tab-pane label="我的">
         <user-view />
       </el-tab-pane>
     </el-tabs>

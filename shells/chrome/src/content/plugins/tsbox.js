@@ -72,11 +72,11 @@ class TsboxPlugin extends Plugin {
     if (boxFilter === 'all') {
       return true;
     } else if (boxFilter === '100') { // 飞机
-      return treasureType === 100;
+      return [100, 104, 105].includes(treasureType);
     } else if (boxFilter === '101') { // 火箭
-      return treasureType >= 101;
+      return treasureType >= 101 && ![104, 105].includes(treasureType);
     } else if (boxFilter === '102') { // 超火
-      return treasureType >= 103;
+      return treasureType >= 103 && ![104, 105, 119].includes(treasureType);
     } else if (boxFilter === '103') { // 飞船
       return treasureType === 127;
     }
@@ -101,7 +101,7 @@ class TsboxPlugin extends Plugin {
       this.noTs = false;
       this.state = 'WAITING';
       const { delayRange } = this.setting;
-      const delay = Math.max(delayRange[1] - delayRange[0], 0) * Math.random() + delayRange[0];
+      const delay = box.noDelay || box.treasureType === 128 ? 0 : Math.max(delayRange[1] - delayRange[0], 0) * Math.random() + delayRange[0];
       const surplusTime = Math.max(box.surplusTime * 1000 - Date.now() - (this.setting.timeDelta || 0) + delay + 5, 0);
       setTimeout(() => this.handleTimeupBox(box), surplusTime);
     }
@@ -185,6 +185,7 @@ class TsboxPlugin extends Plugin {
       treasureId: parseInt(box.rpid, 10),
       treasureType: parseInt(box.rpt, 10),
       senderName: box.snk,
+      snk: box.snk,
       senderUid: +box.sid,
       surplusTime: parseInt(box.ot, 10),
       destroyTime: parseInt(box.dt, 10),
@@ -208,6 +209,22 @@ class TsboxPlugin extends Plugin {
         });
         isProduction || console.log(boxes);
         this.handlePendingBoxes(this.dataMap(boxes));
+      });
+
+      socketStream.subscribe(msg => {
+        if (msg.tsid) {
+          console.log(msg);
+          /*
+          this.handlePendingBoxes([{
+            roomId: msg.rid,
+            treasureId: parseInt(msg.tsid, 10),
+            treasureType: 127,
+            snk: 'PK宝箱',
+            surplusTime: parseInt(Date.now() / 1000, 10),
+            noDelay: true,
+          }]);
+          */
+        }
       });
     }
   }

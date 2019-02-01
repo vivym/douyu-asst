@@ -8,6 +8,7 @@ module.exports = createConfig({
   output: {
     path: path.join(__dirname, 'tsbuild', 'background'),
     filename: '[name].js',
+    jsonpFunction: 'dyasstWebpackJsonp',
   },
   optimization: {
     splitChunks: {
