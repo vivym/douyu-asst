@@ -289,7 +289,7 @@ class TsboxPlugin extends Plugin {
         }
         const now = new Date();
         const last = parseInt(window.localStorage[entry], 10);
-        if (new Date(last).toDateString() !== now.toDateString() || now.getTime() - last > 3 * 60 * 60 * 1000) {
+        if (new Date(last).toDateString() !== now.toDateString() || now.getTime() - last > 20 * 60 * 1000) {
           setTimeout(() => {
             this.sendAutoBarrage();
             window.localStorage[entry] = Date.now();

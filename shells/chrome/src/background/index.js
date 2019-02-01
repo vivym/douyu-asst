@@ -3,6 +3,11 @@ const httpClient = require('./libs/httpClient');
 const BackgroundProxy = require('./backgroundProxy');
 const NotificationProxy = require('./libs/notificationProxy');
 const installGlobals = require('./installGlobals');
+const config = require('config');
+
+chrome.runtime.onInstalled.addListener(() => {
+  window.localStorage.dyasstVer = config.version;
+});
 
 window.dyasstLoginStatus = 0;
 

@@ -114,7 +114,7 @@ export default {
           isProduction || console.log(box, type);
           if (type === 'enter') {
             window.postMessage({ source: 'delete_box', data: { rpid }, target: 'bg' }, '*');
-            window.postMessage({ source: 'open_page', data: { url: `https://www.douyu.com/${box.rid}` }, target: 'bg' }, '*');
+            window.postMessage({ source: 'open_page', data: { url: `https://www.douyu.com/${box.rid}`, active: false }, target: 'bg' }, '*');
           }
           break;
         }
