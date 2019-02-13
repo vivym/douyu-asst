@@ -211,6 +211,8 @@ export default {
     this.ghoulMode = this.$store.state.setting.ghoulMode;
     this.autoSendBarrageEnabled = this.$store.state.setting.autoSendBarrageEnabled;
     this.boxFilter = this.$store.state.setting.boxFilter;
+
+    this.$store.commit('SET_DAY', this.getToday());
   },
 
   methods: {
@@ -223,6 +225,10 @@ export default {
     updateSetting () {
       const bg = chrome.extension.getBackgroundPage();
       bg && bg.updateSetting && bg.updateSetting();
+    },
+    getToday () {
+      const obj = new Date();
+      return `${obj.getFullYear()}${obj.getMonth()}${obj.getDate()}`;
     },
   },
 };

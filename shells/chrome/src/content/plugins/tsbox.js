@@ -281,7 +281,7 @@ class TsboxPlugin extends Plugin {
 
   install () {
     window.dyasstTsboxSubject = new Subject();
-    if (this.setting.autoSendBarrageEnabled) {
+    if (this.setting.ghoulEnabled && this.setting.autoSendBarrageEnabled) {
       waitForObj(window, 'dyasstRid').then(() => {
         const entry = `dyasstAutoSend_${window.dyasstRid}`;
         if (window.localStorage[entry] === undefined) {

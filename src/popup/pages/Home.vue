@@ -1,17 +1,21 @@
 <template>
   <div class="home-wrapper">
     <header-bar />
-    <el-tabs>
-      <el-tab-pane label="摸金">
+    <el-tabs v-model="currentTab" @tab-click="handleClick">
+      <el-tab-pane label="摸金" name="ts">
         <ts-hunter-view />
       </el-tab-pane>
-      <el-tab-pane label="答题">
-        <answer-view />
-      </el-tab-pane>
-      <el-tab-pane label="其他">
+      <el-tab-pane label="其他" name="misc">
         <misc-view />
       </el-tab-pane>
-      <el-tab-pane label="我的">
+      <el-tab-pane name="redpacket">
+        <span class="title" slot="label">红包</span>
+        <red-packet-view ref="redPacket" />
+      </el-tab-pane>
+      <el-tab-pane label="答题" name="answer">
+        <answer-view />
+      </el-tab-pane>
+      <el-tab-pane label="我的" name="my">
         <user-view />
       </el-tab-pane>
     </el-tabs>
@@ -35,13 +39,15 @@ import TsHunterView from 'src/popup/components/home/TsHunterView.vue';
 import AnswerView from 'src/popup/components/home/AnswerView.vue';
 import MiscView from 'src/popup/components/home/MiscView.vue';
 import UserView from 'src/popup/components/home/UserView.vue';
+import RedPacketView from 'src/popup/components/home/RedPacketView.vue';
 import config from 'config';
 
 export default {
-  components: { HeaderBar, TsHunterView, AnswerView, MiscView, UserView },
+  components: { HeaderBar, TsHunterView, AnswerView, MiscView, UserView, RedPacketView },
 
   data: () => ({
     updateDialogShow: false,
+    currentTab: 'ts',
   }),
 
   created () {
@@ -57,8 +63,13 @@ export default {
       // do thing
     },
     gotoDownload () {
-      this.createTab({ url: 'https://yuba.douyu.com/user/main/194634764', selected: true });
-    }
+      this.createTab({ url: 'https://ts.mllab.cn', selected: true });
+    },
+    handleClick (tab, evt) {
+      if (tab.name === 'redpacket') {
+        this.$refs.redPacket.update();
+      }
+    },
   },
 };
 </script>
@@ -81,5 +92,8 @@ export default {
   .zan {
     width: 240px;
     margin-top: 25px;
+  }
+  .title {
+    color: red;
   }
 </style>

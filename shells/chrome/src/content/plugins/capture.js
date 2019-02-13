@@ -5,45 +5,117 @@ class CapturePlugin extends Plugin {
   constructor (setting) {
     super();
     this.setting = setting;
-    this.data = [];
   }
 
   grant () {
     return true;
   }
 
-  push (data) {
-    console.log(data);
-    this.data.push(data);
-    while (this.data.length > 30) {
-      this.data.shift();
-    }
+  appendTitleBottomButton (el, content, width, iconUrl, onclick) {
+    const span = document.createElement('span');
+    span.className = 'Title-blockInline';
+    const div = document.createElement('div');
+    div.style.width = `${width}px`;
+    div.style.height = '24px';
+    div.style.marginLeft = '15px';
+    div.style.zIndex = '104';
+    div.style.position = 'relative';
+    div.style.borderLeft = '1px solid #eaeaeb';
+    div.style.display = 'flex';
+    div.style.flexDirection = 'row';
+    div.style.alignItems = 'center';
+    div.className = 'PhoneWatch-tit';
+    div.onclick = onclick;
+    span.append(div);
+    const img = document.createElement('img');
+    img.src = iconUrl;
+    img.style.width = '20px';
+    img.style.height = '20px';
+    img.style.marginRight = '8px';
+    img.style.marginLeft = '15px';
+    const txt = document.createElement('span');
+    txt.style.color = '#2c3e50';
+    txt.style.lineHeight = '24px';
+    txt.style.textAlign = 'center';
+    txt.style.fontSize = '13px';
+    txt.innerText = content;
+    div.append(img, txt);
+    const invisibleSpan = document.createElement('span');
+    invisibleSpan.className = 'Title-blockInline Title-invisible';
+    el.append(span, invisibleSpan);
   }
 
-  startRecording (stream) {
-    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9,opus' });
-    recorder.ondataavailable = evt => this.push(evt.data);
-    recorder.start(1000);
+  hookMediaHandler (mediaHandler) {
+    const videoBackTime = 30;
+    const videoBackTimeThreshold = 60;
+    mediaHandler._removeBuffer = function () {
+      if (this._video && !window.dyasstStopRemoveVideoBuffer) {
+        const { currentTime } = this._video;
+        const { sourceBuffers } = this._mediaSource;
+        for (const sourceBuffer of sourceBuffers) {
+          if (!sourceBuffer.updating) {
+            const { buffered } = sourceBuffer;
+            if (buffered.length > 0) {
+              if (buffered.length > 1) {
+                const a = Math.max(buffered.start(0) - 0.1, 0);
+                const s = buffered.end(0) + 0.1;
+                if (s < currentTime) {
+                  sourceBuffer.remove(a, s);
+                }
+              } else {
+                const a = Math.max(buffered.start(0) - 0.1, 0);
+                if (currentTime - a > videoBackTimeThreshold) {
+                  const s = currentTime - videoBackTime;
+                  sourceBuffer.remove(a, s);
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+    mediaHandler._checkPlayStuck = function () {
+      if (this._checkStuckTimer) {
+        clearTimeout(this._checkStuckTimer);
+      }
+    };
+  }
+
+  hookVideoModule (videoModule) {
+    videoModule.checkBuffer = function () {};
   }
 
   install () {
-    waitForDom('body').then(() => {
-      const wrapper = document.createElement('div');
-      wrapper.id = 'dyasst-capture';
-      document.body.insertBefore(wrapper, document.body.firstElementChild);
-
-      injectRemoteJS('chrome-extension://gbbpngofangjplfgakjffjfcphngbolm/tsbuild/content/views/capture.js');
-    });
-    waitForDom('video').then(videoEl => {
-      waitForObj(videoEl, 'currentTime').then(() => {
-        // this.startRecording(videoEl.captureStream());
+    window.dyasstStopRemoveVideoBuffer = false;
+    waitForObj(window, 'H5PlayerVideoLib').then(() => {
+      const lib = window.H5PlayerVideoLib;
+      waitForObj(lib, 'getVideo').then(() => {
+        const videoWrapper = lib.getVideo();
+        waitForObj(videoWrapper, 'modules').then(() => {
+          videoWrapper.modules.forEach(mod => {
+            if (mod.id === 'videoModule') {
+              this.hookVideoModule(mod);
+              waitForObj(mod, 'player').then(() => {
+                const mediaHandler = mod.player.player._mediaHandler;
+                this.hookMediaHandler(mediaHandler);
+              });
+            }
+          });
+        });
       });
     });
-
-    window.dyasstGetCapturedVideo = () => {
-      return this.data;
-      // return new Blob(this.data, { type: 'video/webm; codecs=vp9' });
-    };
+    waitForDom('.Title-roomOtherBottom').then(el => {
+      this.appendTitleBottomButton(el, '录制GIF', 84,
+        'http://static.jiuwozb.com/assets/images/capture/video.png',
+        () => window.dyasstShowCapture());
+      this.appendTitleBottomButton(el, '主播表情包', 104, 'http://static.jiuwozb.com/assets/images/capture/video.png');
+    });
+    waitForDom('.PlayerToolbar').then(el => {
+      const wrapper = document.createElement('div');
+      wrapper.id = 'dyasst-capture';
+      el.append(wrapper);
+      injectRemoteJS('chrome-extension://gbbpngofangjplfgakjffjfcphngbolm/tsbuild/content/views/capture.js');
+    });
   }
 };
 

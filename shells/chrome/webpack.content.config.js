@@ -11,6 +11,7 @@ module.exports = createConfig({
     'views/tsbox': './src/content/views/tsbox.js',
     'views/capture': './src/content/views/capture.js',
     'views/barrage': './src/content/views/barrage.js',
+    'views/menu': './src/content/views/menu.js',
   },
   output: {
     path: path.join(__dirname, 'tsbuild', 'content'),

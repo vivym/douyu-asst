@@ -15,6 +15,9 @@ class AdblockPlugin extends Plugin {
       waitForDom('.SignBarrage', 333).then(el => {
         el.style.display = 'none';
       });
+      waitForDom('.Title-ad', 333).then(el => {
+        el.style.display = 'none';
+      });
       waitForDom('div[class^=recommendAD]', 333).then(el => {
         el.style.display = 'none';
       });

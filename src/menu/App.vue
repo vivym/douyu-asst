@@ -1,18 +1,18 @@
 <template>
-  <div id="dyasst-capture">
+  <div id="dyasst-menu">
     <router-view class="r-box"></router-view>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'dyasst-capture',
+  name: 'dyasst-menu',
 };
 </script>
 
 <style scoped>
-#dyasst-capture {
-  z-index: -1;
+#dyasst-barrage {
+  box-sizing: border-box;
 }
 .r-box {
   display: flex;

@@ -36,9 +36,13 @@ class BarragePlugin extends Plugin {
       if (!self.uid) {
         self.uid = getUid();
       }
-      if (msg.uid === self.uid && self.setting.nobleBarrageExp !== 'off') {
-        msg.nc = '1';
-        msg.nl = self.setting.nobleBarrageExp;
+      try {
+        if ((msg.uid === self.uid || msg.uid === window.socketProxy.info.user.userName) && self.setting.nobleBarrageExp !== 'off') {
+          msg.nc = '1';
+          msg.nl = self.setting.nobleBarrageExp;
+        }
+      } catch (err) {
+        // do nothing
       }
       return chatmsgThrottle.call(this, msg, ...argv);
     };

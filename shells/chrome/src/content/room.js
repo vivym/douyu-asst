@@ -4,12 +4,14 @@ const installTsbox = require('./libs/installTsbox');
 const PluginProxy = require('./libs/pluginProxy');
 const TsboxPlugin = require('./plugins/tsbox');
 const BarragePlugin = require('./plugins/barrage');
-// const CapturePlugin = require('./plugins/capture');
+const CapturePlugin = require('./plugins/capture');
 const BarrageQueryPlugin = require('./plugins/barrage_query');
 const NotificationPlugin = require('./plugins/notification');
 const GiftPlugin = require('./plugins/gift');
 const RoomInfoPlugin = require('./plugins/room_info');
 const AdblockPlugin = require('./plugins/adblock');
+const DrawPlugin = require('./plugins/draw');
+const MenuPlugin = require('./plugins/menu');
 
 function roomSetup (setting) {
   const tsboxPlugin = new TsboxPlugin(setting);
@@ -27,26 +29,30 @@ function roomSetup (setting) {
     }
   });
   const barragePlugin = new BarragePlugin(setting);
-  // const capturePlugin = new CapturePlugin(setting);
+  const capturePlugin = new CapturePlugin(setting);
   const barrageQueryPlugin = new BarrageQueryPlugin(setting);
   const notificationPlugin = new NotificationPlugin(setting);
   const giftPlugin = new GiftPlugin(setting, window.dyasstReactAgent);
   const roomInfoPlugin = new RoomInfoPlugin(setting);
   const adblockPlugin = new AdblockPlugin(setting);
+  const drawPlugin = new DrawPlugin(setting);
+  const menuPlugin = new MenuPlugin(setting);
 
   const pluginProxy = new PluginProxy();
   pluginProxy.push(tsboxPlugin);
   pluginProxy.push(barragePlugin);
-  // pluginProxy.push(capturePlugin);
+  pluginProxy.push(capturePlugin);
   pluginProxy.push(barrageQueryPlugin);
   pluginProxy.push(notificationPlugin);
   pluginProxy.push(giftPlugin);
   pluginProxy.push(roomInfoPlugin);
   pluginProxy.push(adblockPlugin);
+  pluginProxy.push(drawPlugin);
+  pluginProxy.push(menuPlugin);
   try {
     pluginProxy.install();
   } catch (err) {
-    console.log(err);
+    console.error(err);
   }
 
   if (document.location.href.startsWith(config.roomUrl)) {
