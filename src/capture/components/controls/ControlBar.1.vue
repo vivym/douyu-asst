@@ -1,13 +1,14 @@
 <template>
   <div class="control-bar-wrapper">
     <span ref="slider" class="slider"></span>
-    <span v-if="initialized" class="range" :style="rangeStyle"></span>
-    <DragButton2 v-if="initialized" class="current" :value="current" @change="changeCurrent">
+    <span class="range" :style="rangeStyle"></span>
+    <DragButton2 class="current" :value="current" @change="changeCurrent">
+      <img src="http://static.jiuwozb.com/assets/images/capture/triangle.png" />
     </DragButton2>
-    <drag-button v-if="initialized" class="anchor" v-model="value1">
+    <drag-button class="anchor" v-model="value1">
       <img src="http://static.jiuwozb.com/assets/images/capture/triangle.png" />
     </drag-button>
-    <drag-button v-if="initialized" class="anchor" v-model="value2">
+    <drag-button class="anchor" v-model="value2">
       <img src="http://static.jiuwozb.com/assets/images/capture/triangle.png" />
     </drag-button>
   </div>
@@ -36,10 +37,6 @@ export default {
     step: {
       type: Number,
       default: 1,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
     },
     initialized: {
       type: Boolean,
@@ -77,8 +74,9 @@ export default {
 
   watch: {
     current (value) {
-      if (this.initialized && !this.disabled) {
+      if (this.initialized) {
         if (value > Math.max(this.value1, this.value2) || value < Math.min(this.value1, this.value2)) {
+          console.log('reset');
           this.$emit('reset');
         }
       }
@@ -146,14 +144,14 @@ export default {
     background-color: aquamarine;
   }
   .current {
-    position: absolute;
-    height: 8px;
-    width: 4px;
-    margin-left: -2px;
-    background-color: red;
+    position: absolute;    
   }
   .current:hover {
     cursor: pointer;
+  }
+  .current img {
+    height: 18px;
+    width: 18px;
   }
   .anchor {
     position: absolute;
@@ -165,6 +163,5 @@ export default {
   .anchor img {
     height: 18px;
     width: 18px;
-    margin-left: -9px;
   }
 </style>

@@ -46,10 +46,10 @@ class CapturePlugin extends Plugin {
   }
 
   hookMediaHandler (mediaHandler) {
-    const videoBackTime = 30;
-    const videoBackTimeThreshold = 60;
+    const videoBackTime = 60;
+    const videoBackTimeThreshold = 100;
     mediaHandler._removeBuffer = function () {
-      if (this._video && !window.dyasstStopRemoveVideoBuffer) {
+      if (this._video && !window.dyasstCaptureMode) {
         const { currentTime } = this._video;
         const { sourceBuffers } = this._mediaSource;
         for (const sourceBuffer of sourceBuffers) {
@@ -74,19 +74,29 @@ class CapturePlugin extends Plugin {
         }
       }
     };
+    const checkPlayStuck = mediaHandler._checkPlayStuck;
     mediaHandler._checkPlayStuck = function () {
-      if (this._checkStuckTimer) {
-        clearTimeout(this._checkStuckTimer);
+      if (window.dyasstCaptureMode) {
+        if (this._checkStuckTimer) {
+          clearTimeout(this._checkStuckTimer);
+        }
+      } else {
+        checkPlayStuck.call(this);
       }
     };
   }
 
   hookVideoModule (videoModule) {
-    videoModule.checkBuffer = function () {};
+    const { checkBuffer } = videoModule;
+    videoModule.checkBuffer = function () {
+      if (!window.dyasstCaptureMode) {
+        checkBuffer.call(this);
+      }
+    };
   }
 
   install () {
-    window.dyasstStopRemoveVideoBuffer = false;
+    window.dyasstCaptureMode = false;
     waitForObj(window, 'H5PlayerVideoLib').then(() => {
       const lib = window.H5PlayerVideoLib;
       waitForObj(lib, 'getVideo').then(() => {

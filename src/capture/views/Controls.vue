@@ -6,10 +6,12 @@
         <img v-else src="http://static.jiuwozb.com/assets/images/capture/pause.png" />
       </div>
       <control-bar
+        ref="controlBar"
         class="control-bar"
         :start="start"
         :end="end"
         :current="currentTime"
+        :disabled="disabled"
         :initialized="initialized"
         @reset="reset"
         @changeCurrent="changeCurrent">
@@ -34,9 +36,10 @@ export default {
     currentTime: 0,
     video: null,
     initialized: false,
+    disabled: false,
   }),
 
-  mounted () {
+  created () {
     this.video = document.querySelector('#__video2');
     if (this.video) {
       this.onTimeUpdate();
@@ -52,6 +55,23 @@ export default {
   },
 
   methods: {
+    startGenGIF (crop) {
+      if (this.video) {
+        this.disabled = true;
+        const { value1, value2 } = this.$refs.controlBar;
+        const start = Math.min(value1, value2);
+        const end = Math.max(value1, value2);
+        this.reset();
+        return this.$gifshot.createGIF({
+          video: this.video,
+          start,
+          end,
+          crop,
+          gifWidth: 260,
+          gifHeight: 260,
+        });
+      }
+    },
     pause () {
       if (this.video) {
         this.isPaused = !this.isPaused;
@@ -64,9 +84,10 @@ export default {
     },
     onTimeUpdate () {
       if (this.video) {
-        this.start = Math.floor(this.video.buffered.start(0) + 0.5);
         if (!this.initialized) {
-          this.end = Math.floor(this.video.buffered.end(0) - 0.5);
+          const { buffered, currentTime } = this.video;
+          this.start = Math.floor(Math.max(buffered.start(0), currentTime - 40) + 0.5);
+          this.end = this.start + 60;
           this.video.currentTime = this.start + 1;
           this.$nextTick(() => {
             this.initialized = true;
@@ -77,8 +98,11 @@ export default {
     },
     reset () {
       if (this.video) {
-        this.currentTime = this.start;
-        this.video.currentTime = this.start + 1;
+        const { value1, value2 } = this.$refs.controlBar;
+        const start = Math.min(value1, value2);
+        const end = Math.max(value1, value2);
+        this.currentTime = start + 0.1;
+        this.video.currentTime = this.currentTime;
         this.video.play();
       }
     },

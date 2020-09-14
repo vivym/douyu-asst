@@ -12,6 +12,11 @@
         <span class="title" slot="label">红包</span>
         <red-packet-view ref="redPacket" />
       </el-tab-pane>
+      <!--
+      <el-tab-pane label="续牌子" name="fansMedal">
+        <fans-medal-view />
+      </el-tab-pane>
+      -->
       <el-tab-pane label="答题" name="answer">
         <answer-view />
       </el-tab-pane>
@@ -40,10 +45,11 @@ import AnswerView from 'src/popup/components/home/AnswerView.vue';
 import MiscView from 'src/popup/components/home/MiscView.vue';
 import UserView from 'src/popup/components/home/UserView.vue';
 import RedPacketView from 'src/popup/components/home/RedPacketView.vue';
+import FansMedalView from 'src/popup/components/home/FansMedalView.vue';
 import config from 'config';
 
 export default {
-  components: { HeaderBar, TsHunterView, AnswerView, MiscView, UserView, RedPacketView },
+  components: { HeaderBar, TsHunterView, AnswerView, MiscView, UserView, RedPacketView, FansMedalView },
 
   data: () => ({
     updateDialogShow: false,

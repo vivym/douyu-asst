@@ -1,6 +1,8 @@
 const noop = () => {};
 
 const defaultOptions = {
+  start: 0,
+  end: 15,
   sampleInterval: 10,
   numWorkers: 2,
   filter: '',

@@ -3,13 +3,26 @@
     ref="finderWrapper"
     class="finder-wrapper"
     :style="{ top: `-${playerSize.height}px`, width: `${playerSize.width}px`, height: `${playerSize.height}px` }">
-    <div
+    <draggable
       ref="finder"
       class="finder"
-      :style="{ width: `${width}px`, height: `${height}px`, left: `${left}px`, top: `${top}px` }"
-      @mousedown="onMouseDown"
-      @touchstart="onMouseDown">
-    </div>
+      :pos="finderInitPos"
+      :playgroundSize="playerSize"
+      :square="square"
+      @mouseenter.native="onMouseEnter"
+      @mouseleave.native="onMouseLeave"
+      @change="onFinderChanged">
+      <div class="corner c1"></div>
+      <div class="corner c2"></div>
+      <div class="corner c3"></div>
+      <div class="corner c4"></div>
+      <div v-show="hovering" class="square" @click="onSquareClicked"></div>
+      <div v-show="hovering" class="corner2 c1"></div>
+      <div v-show="hovering" class="corner2 c2"></div>
+      <div v-show="hovering" class="corner2 c3"></div>
+      <div v-show="hovering" class="corner2 c4"></div>
+      <div v-if="generating">正在生成GIF</div>
+    </draggable>
     <div class="mask" :style="maskStyle1"></div>
     <div class="mask" :style="maskStyle2"></div>
     <div class="mask" :style="maskStyle3"></div>
@@ -18,173 +31,81 @@
 </template>
 
 <script>
+import Draggable from 'src/capture/components/draggable/index.vue';
+
 export default {
+  components: { Draggable },
+
   props: {
     playerSize: {
       type: Object,
       required: true,
     },
+    generating: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   data: () => ({
-    dragging: false,
-    isClick: false,
-    left: 100,
-    top: 100,
-    width: 200,
-    height: 200,
-    isToMove: true,
-    growX: 1,
-    growY: 1,
-    startX: 0,
-    startY: 0,
-    startPosition: null,
+    square: true,
+    hovering: false,
+    finderInitPos: {
+      left: 100,
+      top: 100,
+      width: 260,
+      height: 260,
+    },
+    finderPos: null,
   }),
 
   computed: {
     maskStyle1 () {
-      return { top: 0, left: 0, width: `${this.playerSize.width}px`, height: `${this.top}px` };
+      return { top: 0, left: 0, width: `${this.playerSize.width}px`, height: `${this.finderPos.top}px` };
     },
     maskStyle2 () {
       return {
         bottom: 0,
         left: 0,
         width: `${this.playerSize.width}px`,
-        height: `${Math.max(this.playerSize.height - this.top - this.height, 0)}px`,
+        height: `${Math.max(this.playerSize.height - this.finderPos.top - this.finderPos.height, 0)}px`,
       };
     },
     maskStyle3 () {
       return {
-        top: `${this.top}px`,
+        top: `${this.finderPos.top}px`,
         left: 0,
-        width: `${this.left}px`,
-        height: `${this.height}px`,
+        width: `${this.finderPos.left}px`,
+        height: `${this.finderPos.height}px`,
       };
     },
     maskStyle4 () {
       return {
-        top: `${this.top}px`,
+        top: `${this.finderPos.top}px`,
         right: 0,
-        width: `${this.playerSize.width - this.left - this.width}px`,
-        height: `${this.height}px`,
+        width: `${this.playerSize.width - this.finderPos.left - this.finderPos.width}px`,
+        height: `${this.finderPos.height}px`,
       };
     },
   },
 
+  created () {
+    this.finderPos = Object.assign({}, this.finderInitPos);
+  },
+
   methods: {
-    currentPosition () {
-      return {
-        left: this.left,
-        top: this.top,
-        width: this.width,
-        height: this.height,
-      };
+    onMouseEnter () {
+      this.hovering = true;
     },
-    onMouseDown (e) {
-      e.preventDefault();
-      this.onDragStart(e);
-      window.addEventListener('mousemove', this.onDragging);
-      window.addEventListener('touchmove', this.onDragging);
-      window.addEventListener('mouseup', this.onDragEnd);
-      window.addEventListener('touchend', this.onDragEnd);
-      window.addEventListener('contextmenu', this.onDragEnd);
+    onMouseLeave () {
+      this.hovering = false;
     },
-    onDragStart (e) {
-      this.dragging = true;
-      this.isClick = true;
-      if (e.type === 'touchstart') {
-        e.clientX = e.touches[0].clientX;
-        e.clientY = e.touches[0].clientY;
-      }
-      const finderRect = this.$refs.finder.getBoundingClientRect();
-      const layerX = e.clientX - finderRect.left;
-      const layerY = e.clientY - finderRect.top;
-      if ((layerX < this.width * 0.3 || layerX > this.width * 0.7) &&
-        (layerY < this.height * 0.3 || layerY > this.height * 0.7)) {
-        if (layerX < this.width * 0.3) {
-          this.growX = -1;
-        } else if (layerX > this.width * 0.7) {
-          this.growX = 1;
-        }
-        if (layerY < this.height * 0.3) {
-          this.growY = -1;
-        } else if (layerY > this.height * 0.7) {
-          this.growY = 1;
-        }
-        this.isToMove = false;
-      } else {
-        this.isToMove = true;
-      }
-      this.startX = e.clientX;
-      this.startY = e.clientY;
-      this.startPosition = this.currentPosition();
+    onSquareClicked () {
+      this.square = !this.square;
     },
-    onDragging (e) {
-      if (this.dragging) {
-        this.isClick = false;
-        if (e.type === 'touchmove') {
-          e.clientX = e.touches[0].clientX;
-          e.clientY = e.touches[0].clientY;
-        }
-        this.currentX = e.clientX;
-        const deltaX = this.currentX - this.startX;
-        this.currentY = e.clientY;
-        const deltaY = this.currentY - this.startY;
-        const newPosition = {
-          left: this.left,
-          top: this.top,
-          width: this.width,
-          height: this.height,
-        };
-        if (this.isToMove) {
-          newPosition.left = this.startPosition.left + deltaX;
-          newPosition.top = this.startPosition.top + deltaY;
-        } else {
-          const delta = Math.min(Math.abs(deltaX), Math.abs(deltaY));
-          const { growX, growY } = this;
-          if (growX * deltaX * growY * deltaY > 0) {
-            newPosition.width = this.startPosition.width + delta * Math.sign(deltaX) * Math.sign(growX);
-            newPosition.height = this.startPosition.height + delta * Math.sign(deltaY) * Math.sign(growY);          
-          }
-          if (growX === -1) {
-            newPosition.left = this.startPosition.left + delta * Math.sign(deltaX);
-          }
-          if (growY === -1) {
-            newPosition.top = this.startPosition.top + delta * Math.sign(deltaY);
-          }
-        }
-        if (this.checkPosition(newPosition)) {
-          this.left = newPosition.left;
-          this.top = newPosition.top;
-          this.width = newPosition.width;
-          this.height = newPosition.height;
-        }
-        this.$emit('change', this.currentPosition());
-      }
-    },
-    checkPosition (pos) {
-      return this.checkInside(pos.left, pos.top) &&
-        this.checkInside(pos.left + pos.width, pos.top) &&
-        this.checkInside(pos.left, pos.top + pos.height) &&
-        this.checkInside(pos.left + pos.width, pos.top + pos.height);
-    },
-    checkInside (x, y) {
-      return x >= 0 && x <= this.playerSize.width && y >= 0 && y <= this.playerSize.height;
-    },
-    onDragEnd (e) {
-      if (this.dragging) {
-        setTimeout(() => {
-          this.dragging = false;
-          if (!this.isClick) {
-            // this.setPosition(this.newPosition);
-          }
-        }, 0);
-        window.removeEventListener('mousemove', this.onDragging);
-        window.removeEventListener('touchmove', this.onDragging);
-        window.removeEventListener('mouseup', this.onDragEnd);
-        window.removeEventListener('touchend', this.onDragEnd);
-        window.removeEventListener('contextmenu', this.onDragEnd);
-      }
+    onFinderChanged (pos) {
+      this.finderPos = pos;
+      this.$emit('change', pos);
     },
   },
 };
@@ -194,7 +115,6 @@ export default {
   .finder-wrapper {
     position: absolute;
     left: 0;
-    
   }
   .mask {
     position: absolute;
@@ -202,9 +122,76 @@ export default {
   }
   .finder {
     position: absolute;
-    border: 1px solid white;
   }
   .finder:hover {
     cursor: pointer;
+  }
+  .corner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: transparent;
+  }
+  .corner.c1 {
+    top: 0;
+    left: 0;
+    border-left: 2px solid white;
+    border-top: 2px solid white;
+  }
+  .corner.c2 {
+    top: 0;
+    right: 0;
+    border-right: 2px solid white;
+    border-top: 2px solid white;
+  }
+  .corner.c3 {
+    bottom: 0;
+    left: 0;
+    border-left: 2px solid white;
+    border-bottom: 2px solid white;
+  }
+  .corner.c4 {
+    bottom: 0;
+    right: 0;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+  }
+  .square {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 50%;
+    margin-left: -12px;
+    top: 10px;
+    background-color: white;
+  }
+  .corner2 {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+  .corner2.c1 {
+    top: 0;
+    left: 0;
+    border-right: 20px solid transparent;
+    border-top: 20px solid white;
+  }
+  .corner2.c2 {
+    top: 0;
+    right: 0;
+    border-left: 20px solid transparent;
+    border-top: 20px solid white;
+  }
+  .corner2.c3 {
+    bottom: 0;
+    left: 0;
+    border-right: 20px solid transparent;
+    border-bottom: 20px solid white;
+  }
+  .corner2.c4 {
+    bottom: 0;
+    right: 0;
+    border-left: 20px solid transparent;
+    border-bottom: 20px solid white;
   }
 </style>

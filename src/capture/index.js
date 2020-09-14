@@ -18,6 +18,7 @@ export function initApp (shell) {
   const router = new VueRouter(RouterConfig);
 
   Vue.mixin(shell.mixin);
+  Vue.prototype.$gifshot = shell.gifshot;
   app = new Vue({
     router: router,
     extends: App,

@@ -1,13 +1,23 @@
 <template>
   <div class="home-wrapper">
     <transition name="el-fade-in">
-      <controls v-if="show" @close="close" />
+      <controls ref="controls" v-if="show" @close="close" />
     </transition>
     <transition name="el-fade-in">
-      <preview v-if="show" @close="close" :finderPos="finderPos" :playerSize="playerSize" />
+      <preview
+        v-if="show"
+        :finderPos="finderPos"
+        :playerSize="playerSize"
+        @close="close"
+        @genStart="onGenStart"
+        @genEnd="onGenEnd">
+      </preview>
     </transition>
     <transition name="el-fade-in">
       <finder v-if="show" @change="onFinderChanged" :playerSize="playerSize" />
+    </transition>
+    <transition name="el-fade-in">
+      <result v-if="resultShow" :gif="gif" @close="closeResult" />
     </transition>
   </div>
 </template>
@@ -16,25 +26,28 @@
 import Controls from './Controls.vue';
 import Preview from './Preview.vue';
 import Finder from './Finder.vue';
+import Result from './Result.vue';
 
 export default {
-  components: { Controls, Preview, Finder },
+  components: { Controls, Preview, Finder, Result },
 
   data: () => ({
     show: false,
+    resultShow: false,
     finderPos: {
       left: 100,
       top: 100,
-      width: 100,
-      height: 100,
+      width: 260,
+      height: 260,
     },
     playerSize: null,
+    gif: '',
   }),
 
   created () {
     window.dyasstShowCapture = () => {
       this.show = !this.show;
-      window.dyasstStopRemoveVideoBuffer = this.show;
+      window.dyasstCaptureMode = this.show;
     };
     const player = document.querySelector('.layout-Player-video');
     const { width, height } = player.getBoundingClientRect();
@@ -47,13 +60,30 @@ export default {
 
   beforeDestroy () {
     this.removeResizeListener();
-    window.dyasstStopRemoveVideoBuffer = false;
+    window.dyasstCaptureMode = false;
   },
 
   methods: {
+    onGenStart (crop) {
+      const promise = this.$refs.controls.startGenGIF(crop);
+      if (promise) {
+        promise.then(gif => {
+          this.gif = gif;
+          this.close();
+          this.resultShow = true;
+        });
+      }
+    },
+    onGenEnd () {
+
+    },
+    closeResult () {
+      this.gif = '';
+      this.resultShow = false;
+    },
     close () {
       this.show = false;
-      window.dyasstStopRemoveVideoBuffer = this.show;
+      window.dyasstCaptureMode = this.show;
     },
     onFinderChanged (pos) {
       this.finderPos = pos;

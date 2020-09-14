@@ -49,6 +49,7 @@ function roomSetup (setting) {
   pluginProxy.push(adblockPlugin);
   pluginProxy.push(drawPlugin);
   pluginProxy.push(menuPlugin);
+  console.log(capturePlugin);
   try {
     pluginProxy.install();
   } catch (err) {

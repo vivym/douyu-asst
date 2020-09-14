@@ -6,8 +6,8 @@
         <img src="https://static.jiuwozb.com/assets/images/tsbox/close.png" />
       </div>
     </div>
-    <div class="canvas-wrapper">
-      <canvas ref="canvas" class="canvas" width="260" height="260" />
+    <div class="video-wrapper">
+      <video ref="video" class="video" :style="videoStyle" />
     </div>
     <div class="footer">
       <div class="btn red" @click="genGIF">生成GIF图</div>
@@ -18,6 +18,8 @@
 </template>
 
 <script>
+const gifshot = require('gifshot');
+
 export default {
   props: {
     finderPos: {
@@ -29,13 +31,6 @@ export default {
       required: true,
     },
   },
-
-  data: () => ({
-    dyVideo: null,
-    ctx: null,
-    renderToken: null,
-  }),
-
   computed: {
     videoStyle () {
       const scale = 260 / this.finderPos.width;
@@ -47,64 +42,29 @@ export default {
       };
     },
   },
-  
   mounted () {
-    this.initializePreview();
-  },
-
-  beforeDestroy () {
-    this.dyVideo = null;
-    this.ctx = null;
-    if (this.renderToken) {
-      clearInterval(this.renderToken);
+    this.dyVideo = document.querySelector('#__video2');
+    if (this.dyVideo) {
+      this.$refs.video.muted = true;
+      const stream = this.dyVideo.captureStream();
+      if (stream.removeTrack) {
+        stream.getAudioTracks().forEach(track => stream.removeTrack(track));
+      }
+      console.log(stream);
+      this.$refs.video.srcObject = stream;
+      this.$refs.video.play();
     }
   },
 
+  beforeDestroy () {
+    this.$refs.video.srcObject = null;
+  },
+
   methods: {
-    initializePreview () {
-      this.dyVideo = document.querySelector('#__video2');
-      if (this.dyVideo) {
-        this.ctx = this.$refs.canvas.getContext('2d');
-        this.renderToken = setInterval(this.render, 100);
-      } else {
-        // TODO
-      }
-    },
-    render () {
-      if (!this.dyVideo || this.dyVideo.paused || this.dyVideo.ended || !this.ctx) {
-        return;
-      }
-
-      const { sx, sy, swidth, sheight, x, y, width, height } = this.calcCrop();
-      const { canvas } = this.$refs;
-
-      this.ctx.fillStyle = '#000000';
-      this.ctx.fillRect(0, 0, canvas.width, canvas.height);
-      this.ctx.drawImage(this.dyVideo, sx, sy, swidth, sheight, x, y, width, height);
-    },
-    calcCrop () {
-      const { finderPos, dyVideo } = this;
-      const { videoWidth, videoHeight, clientWidth, clientHeight } = dyVideo;
-      const scaleX = videoWidth / clientWidth;
-      const scaleY = videoHeight / clientHeight;
-      const finderScale = finderPos.width >= finderPos.height ? 260 / finderPos.width : 260 / finderPos.height;
-
-      return {
-        sx: finderPos.left * scaleX,
-        sy: finderPos.top * scaleY,
-        swidth: videoWidth,
-        sheight: videoHeight,
-        x: 0,
-        y: 0,
-        width: videoWidth * finderScale / scaleX,
-        height: videoHeight * finderScale / scaleY,
-      };
-    },
     close () {
       this.$emit('close');
     },
     genGIF () {
-      this.$emit('genStart', this.calcCrop());
     },
   },
 };
@@ -125,17 +85,19 @@ export default {
     align-items: center;
     border: 1px solid rgb(229, 228, 228);
   }
-  .canvas-wrapper {
+  .video-wrapper {
     position: relative;
     margin-top: 5px;
     margin-bottom: 15px;
     width: 260px;
     height: 260px;
+    overflow: hidden;
   }
-  .canvas {
+  .video {
     background-color: black;
-    width: 260px;
-    height: 260px;
+    position: absolute;
+    width: 704px;
+    height: 396px;
   }
   .header {
     box-sizing: border-box;

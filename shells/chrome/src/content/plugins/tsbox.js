@@ -51,7 +51,7 @@ class TsboxPlugin extends Plugin {
       }, data);
       this.config.isGeeChecking = false;
     }
-    const httpClient = window.sdkf30fc3f26aeee28b73b0('0b1d3').default;
+    const httpClient = window.sdk9eecb9526ff2f13a6112('0b1d3').default;
     return httpClient.post(String, '/member/task/redPacketReceive', info, {
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
     });
@@ -59,17 +59,21 @@ class TsboxPlugin extends Plugin {
 
   pushPendingBox (box) {
     this.pendingBox.add(box);
-    window.dyasstTsboxSubject && window.dyasstTsboxSubject.next(box);
   }
 
   handleRemotePendingBoxes (boxes) {
-    this.handlePendingBoxes(boxes, this.setting.ghoulMode === 'pro');
+    if (window.dyasstTsboxSubject) {
+      boxes.forEach(box => window.dyasstTsboxSubject.next(box));
+    }
+    this.setting.ghoulMode === 'pro' && this.handlePendingBoxes(boxes);
   }
 
   checkBoxType (box) {
     const { boxFilter } = this.setting;
     const treasureType = parseInt(box.treasureType, 10);
-    if (boxFilter === 'all') {
+    if (box.noDelay) {
+      return true;
+    } else if (boxFilter === 'all') {
       return true;
     } else if (boxFilter === '100') { // 飞机
       return [100, 104, 105].includes(treasureType);
@@ -102,7 +106,7 @@ class TsboxPlugin extends Plugin {
       this.state = 'WAITING';
       const { delayRange } = this.setting;
       const delay = box.noDelay || box.treasureType === 128 ? 0 : Math.max(delayRange[1] - delayRange[0], 0) * Math.random() + delayRange[0];
-      const surplusTime = Math.max(box.surplusTime * 1000 - Date.now() - (this.setting.timeDelta || 0) + delay + 5, 0);
+      const surplusTime = box.noDelay ? 0 : Math.max(box.surplusTime * 1000 - Date.now() - (this.setting.timeDelta || 0) + delay + 5, 0);
       setTimeout(() => this.handleTimeupBox(box), surplusTime);
     }
 
@@ -213,8 +217,6 @@ class TsboxPlugin extends Plugin {
 
       socketStream.subscribe(msg => {
         if (msg.tsid) {
-          console.log(msg);
-          /*
           this.handlePendingBoxes([{
             roomId: msg.rid,
             treasureId: parseInt(msg.tsid, 10),
@@ -223,14 +225,13 @@ class TsboxPlugin extends Plugin {
             surplusTime: parseInt(Date.now() / 1000, 10),
             noDelay: true,
           }]);
-          */
         }
       });
     }
   }
 
   installHttpHook () {
-    const httpClient = window.sdkf30fc3f26aeee28b73b0('0b1d3').default;
+    const httpClient = window.sdk9eecb9526ff2f13a6112('0b1d3').default;
     httpClient.applyMiddleWare('post', /\/member\/task\/redPacketReceive/i, rsp => {
       if (rsp.geetest !== undefined) {
         this.state = 'GEE_TESTING';
@@ -250,14 +251,27 @@ class TsboxPlugin extends Plugin {
     });
   }
 
+  getSDK () {
+    if (this.sdk) {
+      return this.sdk;
+    }
+    for (const key of Object.keys(window)) {
+      if (/^sdk([a-f]|[0-9])+$/.test(key)) {
+        this.sdkKey = key;
+        this.sdk = window[key];
+        return this.sdk;
+      }
+    }
+  }
+
   getDepObjs () {
-    return ['socketProxy', 'sdkf30fc3f26aeee28b73b0'];
+    return ['socketProxy', 'sdk9eecb9526ff2f13a6112'];
   }
 
   depObjReady (obj) {
     if (obj === 'socketProxy') {
       this.installSocketHook();
-    } else if (obj === 'sdkf30fc3f26aeee28b73b0') {
+    } else if (obj === 'sdk9eecb9526ff2f13a6112') {
       this.installHttpHook();
     }
   }
