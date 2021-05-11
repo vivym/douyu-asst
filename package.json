@@ -58,7 +58,7 @@
     "fastpriorityqueue": "^0.6.1",
     "fingerprintjs2": "^2.0.6",
     "gifshot": "^0.4.5",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "rxjs": "^6.3.3",
     "socket.io": "^2.2.0",
     "video-canvas": "^4.0.2",
